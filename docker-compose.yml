@@ -1,0 +1,40 @@
+version: "3"
+services:
+  piecewise-saas:
+    build: .
+    depends_on:
+      - piecewise-saas-db
+    networks:
+      - piecewise-saas-private
+      - piecewise-saas-public
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PIECEWISE_SAAS_LOG_LEVEL: ${PIECEWISE_SAAS_LOG_LEVEL:-debug}
+      PIECEWISE_SAAS_HOST: ${PIECEWISE_SAAS_HOST:-0.0.0.0}
+      PIECEWISE_SAAS_PORT: ${PIECEWISE_SAAS_PORT:-3000}
+      PIECEWISE_SAAS_DB_HOST: ${PIECEWISE_SAAS_DB_USER:-piecewise-saas-db}
+      PIECEWISE_SAAS_DB_USER: ${PIECEWISE_SAAS_DB_USER:-piecewise-saas}
+      PIECEWISE_SAAS_DB_PASSWORD: ${PIECEWISE_SAAS_DB_PASSWORD:-piecewise-saas}
+      PIECEWISE_SAAS_DB_DATABASE: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise-saas}
+
+  piecewise-saas-db:
+    image: postgres:12-alpine
+    volumes:
+      - piecewise-saas-db_data:/var/lib/postgresql/data
+    networks:
+      - piecewise-saas-private
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: ${PIECEWISE_SAAS_DB_USER:-piecewise-saas}
+      POSTGRES_PASSWORD: ${PIECEWISE_SAAS_DB_PASSWORD:-piecewise-saas}
+      POSTGRES_DB: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise-saas}
+
+volumes:
+  piecewise-saas-db_data: {}
+
+networks:
+  piecewise-saas-private:
+    internal: true
+  piecewise-saas-public:

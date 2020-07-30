@@ -1,15 +1,109 @@
+import Roles from 'koa-roles';
+import { getLogger } from '../log.js';
+
+const log = getLogger('backend:middleware:auth');
 /**
  * Installs authorization middleware into the koa app.
  *
  * @param {Object} ctx - the koa context object
  * @param {funtion} next - continue to next middleware
  */
-const auth = async (ctx, next) => {
-  if (ctx.isAuthenticated()) {
-    await next();
-  } else {
-    ctx.throw(401, 'Authentication failed.');
+
+// fixIP and fixLocalhost adapted from koa-ip-geo Copyright (c) 2018 Sebastian
+// Hildebrandt under the MIT License
+// https://github.com/sebhildebrandt/koa-ip-geo
+
+// fix for IPv6 Dotted-quad notation
+function fixIp(ip) {
+  if (ip.indexOf(':') !== -1 && ip.indexOf('.') !== -1) {
+    ip = ip.split(':');
+    ip = ip[ip.length - 1];
   }
+  return ip;
+}
+
+function fixLocalhost(list) {
+  if (
+    list.indexOf('127.0.0.1') !== -1 ||
+    list.indexOf(':.1') !== -1 ||
+    list.indexOf('localhost') !== -1
+  ) {
+    if (list.indexOf('127.0.0.1') === -1) list.push('127.0.0.1');
+    if (list.indexOf('::1') === -1) list.push('::1');
+    if (list.indexOf('localhost') === -1) list.push('localhost');
+  }
+  return list;
+}
+
+const authWrapper = (groups, instances) => {
+  const roles = new Roles();
+
+  roles.isMemberOf = (group, id) => {
+    return groups.isMemberOf(group, id);
+  };
+
+  roles.use('access private pages', ctx => ctx.isAuthenticated());
+
+  roles.use('access admin pages', ctx => {
+    log.debug('Checking if user can access admin pages.');
+    if (!ctx.isAuthenticated()) return false;
+
+    return groups.isMemberOf('admins', ctx.state.user[0].id);
+  });
+
+  roles.use('edit this instance', async ctx => {
+    log.debug('Checking if user can edit this instance.');
+    if (!ctx.isAuthenticated()) return false;
+
+    const isAdmin = await groups.isMemberOf('admins', ctx.state.user[0].id);
+    if (isAdmin) return true;
+
+    if (ctx.state.instance) {
+      const instanceMember = await instances.isMemberOf(
+        ctx.state.instance,
+        ctx.state.user[0].id,
+      );
+      const isEditor = await groups.isMemberOf('editors', ctx.state.user[0].id);
+      return instanceMember && isEditor;
+    } else {
+      return false;
+    }
+  });
+
+  roles.use('view this instance', async ctx => {
+    log.debug('Checking if user can view this instance.');
+    if (!ctx.isAuthenticated()) return false;
+
+    const isAdmin = await groups.isMemberOf('admins', ctx.state.user[0].id);
+    if (isAdmin) return true;
+
+    if (ctx.state.instance) {
+      const instanceMember = await instances.isMemberOf(
+        ctx.state.instance,
+        ctx.state.user[0].id,
+      );
+      return instanceMember;
+    } else {
+      return false;
+    }
+  });
+
+  roles.use('write from whitelisted IP', async ctx => {
+    let ips = instances.findAllIps();
+    if (ips.length && ips.length > 0) {
+      let whitelist = fixLocalhost(ips);
+      let ip = ctx.ip;
+      ip = fixIp(ip);
+      return whitelist.some(entry => {
+        let pattern = new RegExp(entry);
+        return pattern.test(ip);
+      });
+    } else {
+      return true;
+    }
+  });
+
+  return roles;
 };
 
-export default auth;
+export default authWrapper;

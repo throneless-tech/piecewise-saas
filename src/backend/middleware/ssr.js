@@ -1,18 +1,29 @@
 import fs from 'fs';
+import { Readable } from 'stream';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { HelmetProvider } from 'react-helmet-async';
 import { StaticRouter } from 'react-router-dom';
-import { ServerStyleSheets, ThemeProvider } from '@material-ui/core/styles';
-import { printDrainHydrateMarks } from 'react-imported-component';
-import CombinedStream from 'combined-stream';
+import {
+  ServerStyleSheets,
+  StylesProvider,
+  ThemeProvider,
+} from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { printDrainHydrateMarks } from 'react-imported-component/server';
+import MultiStream from 'multistream';
 import App from '../../frontend/components/App.jsx';
 import theme from '../../frontend/theme.js';
+import { getLogger } from '../log.js';
 
-const appString = '<div id="root">';
+const log = getLogger('backend:middleware:ssr');
+
+const appString = '<div id="app">';
+const stylesString = '<style id="jss-server-side">';
 const splitter = '###SPLIT###';
 
 const getHTMLFragments = ({ drainHydrateMarks, rawHTML }) => {
+  log.debug('Getting HTML fragments.');
   const [startingRawHTMLFragment, endingRawHTMLFragment] = rawHTML
     .replace(appString, `${appString}${splitter}`)
     .split(splitter);
@@ -20,20 +31,31 @@ const getHTMLFragments = ({ drainHydrateMarks, rawHTML }) => {
   return [startingHTMLFragment, endingRawHTMLFragment];
 };
 
-const getApplicationStream = (originalUrl, context) => {
+const getApplicationStream = async (originalUrl, context) => {
+  log.debug('Getting application stream.');
   const helmetContext = {};
   const app = (
     <HelmetProvider context={helmetContext}>
-      <StaticRouter location={originalUrl} context={context}>
+      <StylesProvider injectFirst>
         <ThemeProvider theme={theme}>
-          <App />
+          <CssBaseline />
+          <StaticRouter location={originalUrl} context={context}>
+            <div>SERVER RENDERED</div>
+            <App />
+          </StaticRouter>
         </ThemeProvider>
-      </StaticRouter>
+      </StylesProvider>
     </HelmetProvider>
   );
 
-  const sheet = new ServerStyleSheets();
-  return renderToString(sheet.collect(app));
+  const sheets = new ServerStyleSheets();
+  const collected = sheets.collect(app);
+  return [collected, sheets];
+};
+
+const injectStyles = (htmlFragment, stylesFragment) => {
+  log.debug('Injecting styles.');
+  return htmlFragment.replace(stylesString, `${stylesString}${stylesFragment}`);
 };
 
 /**
@@ -44,7 +66,19 @@ const getApplicationStream = (originalUrl, context) => {
  */
 const ssr = async (ctx, next) => {
   const context = {};
-  const appStream = getApplicationStream(ctx.originalUrl, context);
+  const [appStream, stylesFragment] = await getApplicationStream(
+    ctx.originalUrl,
+    context,
+  );
+  log.debug('About to server-side render page.');
+  let rendered;
+  try {
+    rendered = renderToString(appStream);
+  } catch (err) {
+    ctx.throw(500, `Error while rendering page: ${err}`);
+  }
+
+  log.debug('Just server-side rendered page.');
 
   if (context.url) {
     ctx.status = 301;
@@ -65,10 +99,17 @@ const ssr = async (ctx, next) => {
     rawHTML: rawHTML,
   });
 
-  const htmlStream = new CombinedStream();
-  [startingHTMLFragment, appStream, endingHTMLFragment].map(content =>
-    htmlStream.append(content),
+  const injectedStartingFragment = injectStyles(
+    startingHTMLFragment,
+    stylesFragment.toString(),
   );
+
+  log.debug('Crossing the streams.');
+  const htmlStream = new MultiStream([
+    Readable.from(injectedStartingFragment),
+    Readable.from(rendered),
+    Readable.from(endingHTMLFragment),
+  ]);
   ctx.body = htmlStream;
   ctx.type = 'html';
   await next();
