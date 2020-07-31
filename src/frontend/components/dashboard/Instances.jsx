@@ -296,7 +296,7 @@ export default function EnhancedTable(props) {
     return <Loading />;
   } else {
     return (
-      <Suspense>
+      <Suspense fallback={<Loading />}>
         <div className={classes.root}>
           <EnhancedTableToolbar updateRows={addData} />
           <TableContainer>

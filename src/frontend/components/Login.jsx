@@ -39,19 +39,45 @@ export default function Login(props) {
     }
   };
 
+  const processError = res => {
+    let errorString;
+    if (res.statusCode && res.error && res.message) {
+      errorString = `HTTP ${res.statusCode} ${res.error}: ${res.message}`;
+    } else if (res.statusCode && res.status) {
+      errorString = `HTTP ${res.statusCode}: ${res.status}`;
+    } else if (res.message) {
+      errorString = res.message;
+    } else {
+      errorString = 'Error in response from server.';
+    }
+    return errorString;
+  };
+
   const handleLogin = async () => {
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
-    formData.append('remember', remember);
+    // const formData = new FormData();
+    // formData.append('username', username);
+    // formData.append('password', password);
+    // formData.append('remember', remember);
+
+    const json = JSON.stringify({
+      data: {
+        username: username,
+        password: password,
+        remember: remember,
+      },
+    });
+
+    console.log('json: ', json);
 
     fetch('/api/v1/login', {
       method: 'POST',
-      body: formData,
+      body: json,
     })
       .then(res => res.json())
       .then(results => {
+        console.log('results: ', results);
         if (results.success) {
+          console.log('in success...');
           setError(false);
           onAuthUpdate(true);
           setHelperText('Login successful.');
@@ -61,26 +87,29 @@ export default function Login(props) {
               state: { user: results.user },
             });
           } else {
-            let libraryStatus;
-            fetch(`/api/v1/libraries?of_user=${results.user.id}`)
-              .then(librariesResponse => {
-                libraryStatus = librariesResponse.status;
-                return librariesResponse.json();
+            let instanceStatus;
+            fetch(`/api/v1/instances?of_user=${results.user.id}`)
+              .then(instancesResponse => {
+                instanceStatus = instancesResponse.status;
+                return instancesResponse.json();
               })
-              .then(libraries => {
-                if (libraryStatus === 200) {
+              .then(instances => {
+                if (instanceStatus === 200) {
                   return history.push({
                     pathname: '/dashboard',
                     state: {
-                      library: libraries.data[0],
+                      instance: instances.data[0],
                       user: results.user,
                     },
                   });
                 } else {
-                  const error = processError(libraries);
+                  const error = processError(instances);
                   throw new Error(error);
                 }
               })
+              .catch(error => {
+                console.error(error.name + error.message);
+              });
           }
         } else {
           setError(true);

@@ -273,7 +273,7 @@ export default function AddUser(props) {
     return <Loading />;
   } else {
     return (
-      <Suspense>
+      <Suspense fallback={<Loading />}>
         <Dialog
           onClose={handleClose}
           modal="true"

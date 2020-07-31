@@ -315,7 +315,7 @@ export default function EnhancedTable(props) {
     return <Loading />;
   } else {
     return (
-      <Suspense>
+      <Suspense fallback={<Loading />}>
         <div className={classes.root}>
           <EnhancedTableToolbar
             userRole={user.role_name}

@@ -210,7 +210,7 @@ export default function controller(users, thisUser) {
         sort_by: query.sort_by,
         from: from,
         to: to,
-        instance: ctx.params.iid,
+        instance: ctx.params.lid,
         group: query.group,
       });
       ctx.response.body = {

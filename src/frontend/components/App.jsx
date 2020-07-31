@@ -3,12 +3,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Switch, Route, Redirect, useHistory } from 'react-router-dom';
 import { lazy, LazyBoundary } from 'react-imported-component';
-import Cookies from 'js-cookie';
 import { ErrorBoundary } from 'react-error-boundary';
-import Error from './Error.jsx';
+import { makeStyles } from '@material-ui/core/styles';
+import Cookies from 'js-cookie';
 
 // material ui imports
-import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 
 const useStyles = makeStyles(() => ({
@@ -17,10 +16,11 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const Basic = lazy(() => import('./Front.jsx'));
 const Dashboard = lazy(() => import('./Dashboard.jsx'));
-const Front = lazy(() => import('./Front.jsx'));
 const Loading = lazy(() => import('./Loading.jsx'));
 const Login = lazy(() => import('./Login.jsx'));
+import Error from './Error.jsx';
 
 const PrivateRoute = ({
   component: Component,
@@ -85,7 +85,7 @@ export default function App() {
     setAuthenticated(authState);
   };
   const [user, setUser] = React.useState(null);
-  const [instance, setInstance] = React.useState(null);
+  const [instance, setinstance] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
@@ -153,14 +153,14 @@ export default function App() {
   if (error) {
     return <div>Error: {error.message}</div>;
   } else if (!isLoaded) {
-    return <Loading />;
+    return <div>Loading...</div>;
   } else {
     return (
       <Container className={classes.container}>
         <ErrorBoundary FallbackComponent={Error}>
           <Switch>
             <LazyBoundary fallback={Loading}>
-              <Route path="/" exact component={Front} />
+              <Route path="/" exact component={Basic} />
               <Route
                 path="/login"
                 render={props => (
