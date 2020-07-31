@@ -151,7 +151,7 @@ export default function AddUser(props) {
 
   // handles value changes for Autocomplete Mui components
   const [role, setRole] = React.useState(null);
-  const [instance, setInstance] = React.useState(null);
+  const [instance, setInstance] = React.useState('N/A');
 
   const handleRoleChange = (event, values) => {
     setRole(values);
@@ -238,7 +238,6 @@ export default function AddUser(props) {
       })
       .then(instances => {
         if (status === 200) {
-          console.log(instances.data);
           setInstances(instances.data);
           return;
         } else {

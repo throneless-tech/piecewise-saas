@@ -62,10 +62,10 @@ function stableSort(array, comparator) {
 const headCells = [
   { id: 'firstName', numeric: false, disablePadding: true, label: 'Name' },
   {
-    id: 'location_name',
+    id: 'instance_name',
     numeric: false,
     disablePadding: false,
-    label: 'Location',
+    label: 'Instance',
   },
   { id: 'email', numeric: false, disablePadding: false, label: 'Email' },
   { id: 'role_name', numeric: false, disablePadding: false, label: 'Role' },
@@ -360,9 +360,9 @@ export default function EnhancedTable(props) {
                             {formatName(row.firstName, row.lastName)}
                           </TableCell>
                           <TableCell>
-                            {row.location_name
-                              ? row.location_name
-                              : row.location}
+                            {row.instance_name
+                              ? row.instance_name
+                              : row.instance}
                           </TableCell>
                           <TableCell>{row.email}</TableCell>
                           <TableCell>
