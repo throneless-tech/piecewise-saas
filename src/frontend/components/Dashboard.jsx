@@ -153,13 +153,6 @@ export default function Dashboard(props) {
                   {user.role_name}
                 </p>
               </Box>
-              {user.role_name === 'admins' && (
-                <Box ml={1}>
-                  <Button variant="outlined" color="secondary" href="/admin">
-                    Admin
-                  </Button>
-                </Box>
-              )}
               <Box ml={1}>
                 <Button
                   variant="outlined"

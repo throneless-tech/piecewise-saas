@@ -83,7 +83,7 @@ export default function Login(props) {
           setHelperText('Login successful.');
           if (results.user.role === 1) {
             return history.push({
-              pathname: '/admin',
+              pathname: '/dashboard',
               state: { user: results.user },
             });
           } else {
