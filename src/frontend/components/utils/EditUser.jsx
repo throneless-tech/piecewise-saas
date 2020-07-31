@@ -80,7 +80,7 @@ export default function EditUser(props) {
   const { onClose, open, row } = props;
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [libraries, setLibraries] = React.useState([]);
+  const [instances, setInstances] = React.useState([]);
   const [groups, setGroups] = React.useState([]);
   const [role, setRole] = React.useState(row.role);
   const [roleName, setRoleName] = React.useState(row.role_name);
@@ -159,17 +159,17 @@ export default function EditUser(props) {
 
   React.useEffect(() => {
     let status;
-    fetch('/api/v1/libraries')
+    fetch('/api/v1/instances')
       .then(res => {
         status = res.status;
         return res.json();
       })
-      .then(libraries => {
+      .then(instances => {
         if (status === 200) {
-          setLibraries(libraries.data);
+          setInstances(instances.data);
           return;
         } else {
-          processError(libraries);
+          processError(instances);
           throw new Error(`Error in response from server.`);
         }
       })
@@ -272,12 +272,12 @@ export default function EditUser(props) {
           />
           <FormControl variant="outlined" className={classes.formControl}>
             <Autocomplete
-              id="library-select"
-              options={libraries}
+              id="instance-select"
+              options={instances}
               getOptionLabel={option => option.name}
               getOptionSelected={(option, value) => option.name === value}
-              defaultValue={libraries.find(
-                library => library.id === row.location,
+              defaultValue={instances.find(
+                instance => instance.id === row.location,
               )}
               onChange={handleLocationChange}
               renderInput={params => (
