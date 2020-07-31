@@ -151,24 +151,24 @@ export default function AddUser(props) {
 
   // handles value changes for Autocomplete Mui components
   const [role, setRole] = React.useState(null);
-  const [location, setLocation] = React.useState(null);
+  const [instance, setInstance] = React.useState(null);
 
   const handleRoleChange = (event, values) => {
     setRole(values);
   };
 
-  const handleLocationChange = (event, values) => {
-    setLocation(values);
+  const handleInstanceChange = (event, values) => {
+    setInstance(values);
   };
 
   // submit new user to api
   const submitData = () => {
     let status;
 
-    // combining inputs with the location and role values from the autocomplete component
+    // combining inputs with the instance and role values from the autocomplete component
     const toSubmit = {
       ...inputs,
-      location: location.id,
+      instance: instance.id,
       role: role.id,
     };
 
@@ -187,7 +187,7 @@ export default function AddUser(props) {
         if (status === 201) {
           alert('User submitted successfully.');
           onClose(
-            { ...toSubmit, location: location.name, role: role.name },
+            { ...toSubmit, instance: instance.domain, role: role.name },
             result.data[0].id,
           );
           return;
@@ -211,10 +211,10 @@ export default function AddUser(props) {
     validateInputs,
   );
 
-  // fetch library api data
+  // fetch instance api data
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [libraries, setLibraries] = React.useState([]);
+  const [instances, setInstances] = React.useState([]);
   const [groups, setGroups] = React.useState([]);
 
   const processError = res => {
@@ -231,17 +231,18 @@ export default function AddUser(props) {
 
   React.useEffect(() => {
     let status;
-    fetch('/api/v1/libraries')
+    fetch('/api/v1/instances')
       .then(res => {
         status = res.status;
         return res.json();
       })
-      .then(libraries => {
+      .then(instances => {
         if (status === 200) {
-          setLibraries(libraries.data);
+          console.log(instances.data);
+          setInstances(instances.data);
           return;
         } else {
-          processError(libraries);
+          processError(instances);
           throw new Error(`Error in response from server.`);
         }
       })
@@ -353,13 +354,13 @@ export default function AddUser(props) {
             />
             <FormControl variant="outlined" className={classes.formControl}>
               <Autocomplete
-                id="library-select"
-                options={libraries}
-                getOptionLabel={option => option.name}
-                getOptionSelected={(option, value) => option.name === value}
-                onChange={handleLocationChange}
+                id="instance-select"
+                options={instances}
+                getOptionLabel={option => option.domain}
+                getOptionSelected={(option, value) => option.domain === value}
+                onChange={handleInstanceChange}
                 renderInput={params => (
-                  <TextField {...params} label="Location" variant="outlined" />
+                  <TextField {...params} label="Instance" variant="outlined" />
                 )}
               />
             </FormControl>

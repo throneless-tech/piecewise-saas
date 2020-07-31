@@ -190,6 +190,6 @@ export default function Dashboard(props) {
 
 Dashboard.propTypes = {
   user: PropTypes.object.isRequired,
-  instance: PropTypes.object.isRequired,
+  instance: PropTypes.object,
   location: PropTypes.object,
 };
