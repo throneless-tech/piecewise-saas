@@ -168,7 +168,7 @@ export default function AddUser(props) {
     // combining inputs with the instance and role values from the autocomplete component
     const toSubmit = {
       ...inputs,
-      instance: instance.id,
+      // instance: instance.id,
       role: role.id,
     };
 
