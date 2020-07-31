@@ -33,7 +33,7 @@ const PrivateRoute = ({
   const path = { ...rest };
 
   if (user) {
-    if (user.role !== 1 && path.path === '/admin') {
+    if (user.role !== 1 && path.path === '/dashboard') {
       return (
         <Route
           {...rest}
@@ -85,7 +85,7 @@ export default function App() {
     setAuthenticated(authState);
   };
   const [user, setUser] = React.useState(null);
-  const [instance, setinstance] = React.useState(null);
+  const [instance, setInstance] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
 

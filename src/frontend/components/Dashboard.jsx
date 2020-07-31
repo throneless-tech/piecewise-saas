@@ -98,15 +98,15 @@ export default function Dashboard(props) {
     if (!props.location.state) {
       setInstance(props.instance);
     } else {
-      let lid, status;
+      let iid, status;
       if (!props.location.state.instance) {
-        lid = 1;
+        iid = 1;
       } else if (isNaN(props.location.state.instance)) {
-        lid = props.location.state.instance.id;
+        iid = props.location.state.instance.id;
       } else {
-        lid = props.location.state.instance;
+        iid = props.location.state.instance;
       }
-      fetch(`api/v1/instances/${lid}`)
+      fetch(`api/v1/instances/${iid}`)
         .then(response => {
           status = response.status;
           return response.json();

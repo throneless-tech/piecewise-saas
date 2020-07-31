@@ -147,7 +147,7 @@ const EnhancedTableToolbar = props => {
       <Grid container spacing={2} alignItems="center" justify="flex-start">
         <Grid item>
           <Typography component="h2" variant="h3">
-            Partner Libraries
+            Instances
           </Typography>
         </Grid>
         <Grid item>

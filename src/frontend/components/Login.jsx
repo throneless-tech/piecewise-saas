@@ -54,30 +54,30 @@ export default function Login(props) {
   };
 
   const handleLogin = async () => {
-    // const formData = new FormData();
-    // formData.append('username', username);
-    // formData.append('password', password);
-    // formData.append('remember', remember);
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    formData.append('remember', remember);
 
-    const json = JSON.stringify({
-      data: {
-        username: username,
-        password: password,
-        remember: remember,
-      },
-    });
+    console.log('form data: ', formData);
 
-    console.log('json: ', json);
+    // const json = JSON.stringify({
+    //   data: {
+    //     username: username,
+    //     password: password,
+    //     remember: remember,
+    //   },
+    // });
+    //
+    // console.log('json: ', json);
 
     fetch('/api/v1/login', {
       method: 'POST',
-      body: json,
+      body: formData,
     })
       .then(res => res.json())
       .then(results => {
-        console.log('results: ', results);
         if (results.success) {
-          console.log('in success...');
           setError(false);
           onAuthUpdate(true);
           setHelperText('Login successful.');
@@ -108,6 +108,7 @@ export default function Login(props) {
                 }
               })
               .catch(error => {
+                setError(true);
                 console.error(error.name + error.message);
               });
           }
