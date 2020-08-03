@@ -7,25 +7,21 @@ export function up(knex) {
         .increments('id')
         .primary()
         .unsigned();
-      table
-        .uuid('id')
-        .defaultTo(knex.raw('uuid_generate_v4()'))
-        .notNullable();
-      table
-        .uuid('user_id')
-        .defaultTo(knex.raw('uuid_generate_v4()'))
-        .notNullable();
+      table.uuid('user_id').notNullable();
+      // .defaultTo(knex.raw('uuid_generate_v4()'));
       table.string('access_token').notNullable();
-      table.timestamps('access_token_expires_on').notNullable();
+      table
+        .timestamp('access_token_expires_on', { useTz: false })
+        .notNullable();
       table.string('client_id').notNullable();
       table.string('refresh_token').notNullable();
-      table.timestamps('refresh_token_expires_on').notNullable();
+      table
+        .timestamp('refresh_token_expires_on', { useTz: false })
+        .notNullable();
       table.timestamps(true, true);
     })
     .then(() =>
-      knex.raw(
-        onUpdateTrigger(knex.context.client.config.client, 'oauth_tokens'),
-      ),
+      knex.raw(onUpdateTrigger(knex.context.client.config.client, 'oauth_tokens')),
     );
 }
 

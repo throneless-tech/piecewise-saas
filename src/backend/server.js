@@ -21,6 +21,7 @@ import UserController from './controllers/user.js';
 import GroupController from './controllers/group.js';
 import InstanceController from './controllers/instance.js';
 import SettingController from './controllers/setting.js';
+import OauthController from './controllers/oauth.js';
 import Instances from './models/instance.js';
 import Settings from './models/setting.js';
 import Users from './models/user.js';
@@ -59,6 +60,8 @@ export default function configServer(config) {
   const groups = GroupController(groupModel, auth);
   const settingModel = new Settings(db);
   const settings = SettingController(settingModel, auth);
+  const oauthModel = new Oauth(db);
+  const oauth = OauthController(oauthModel);
   const instances = InstanceController(instanceModel, auth);
   instances.use('/instances/:iid', users.routes(), users.allowedMethods());
   const apiV1Router = compose([
@@ -70,6 +73,8 @@ export default function configServer(config) {
     instances.allowedMethods(),
     settings.routes(),
     settings.allowedMethods(),
+    oauth.routes(),
+    oauth.allowedMethods(),
     ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
   ]);
 
@@ -87,7 +92,7 @@ export default function configServer(config) {
 
   // Set up oauth server
   server.oauth = oauthserver({
-    model: Oauth, // See https://github.com/thomseddon/node-oauth2-server for specification
+    model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
     grants: ['password'],
     debug: true,
   });
@@ -124,11 +129,12 @@ export default function configServer(config) {
     .use(passport.session())
     .use(cors())
     .use(mount('/api/v1', apiV1Router))
-    .use(server.oauth.authorise());
+    .use(mount('/oauth2', apiV1Router));
+  // .use(server.oauth.authorise());
 
-  server.use(function*(next) {
+  server.use(async next => {
     this.body = 'Secret area';
-    yield next;
+    await next;
   });
 
   server.context.api = false;
@@ -154,5 +160,6 @@ export default function configServer(config) {
         next,
       );
     });
+
   return server.callback();
 }
