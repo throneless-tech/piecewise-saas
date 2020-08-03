@@ -128,14 +128,7 @@ export default function configServer(config) {
     .use(passport.initialize())
     .use(passport.session())
     .use(cors())
-    .use(mount('/api/v1', apiV1Router))
-    .use(mount('/oauth2', apiV1Router));
-  // .use(server.oauth.authorise());
-
-  server.use(async next => {
-    this.body = 'Secret area';
-    await next;
-  });
+    .use(mount('/api/v1', apiV1Router));
 
   server.context.api = false;
   server
