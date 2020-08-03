@@ -6,6 +6,7 @@ import log4js from 'koa-log4';
 import bodyParser from 'koa-body';
 import flash from 'koa-better-flash';
 import mount from 'koa-mount';
+import oauthserver from 'koa-oauth-server';
 import serveStatic from 'koa-static';
 import passport from 'koa-passport';
 import koa404handler from 'koa-404-handler';
@@ -24,6 +25,7 @@ import Instances from './models/instance.js';
 import Settings from './models/setting.js';
 import Users from './models/user.js';
 import Groups from './models/group.js';
+import Oauth from './models/oauth.js';
 
 const __dirname = path.resolve();
 const STATIC_DIR = path.resolve(__dirname, 'dist', 'frontend');
@@ -83,6 +85,13 @@ export default function configServer(config) {
     await session(ctx, next);
   });
 
+  // Set up oauth server
+  server.oauth = oauthserver({
+    model: Oauth, // See https://github.com/thomseddon/node-oauth2-server for specification
+    grants: ['password'],
+    debug: true,
+  });
+
   // If we're running behind Cloudflare, set the access parameters.
   if (config.cfaccess_url && config.cfaccess_audience) {
     server.use(async (ctx, next) => {
@@ -114,7 +123,13 @@ export default function configServer(config) {
     .use(passport.initialize())
     .use(passport.session())
     .use(cors())
-    .use(mount('/api/v1', apiV1Router));
+    .use(mount('/api/v1', apiV1Router))
+    .use(server.oauth.authorise());
+
+  server.use(function*(next) {
+    this.body = 'Secret area';
+    yield next;
+  });
 
   server.context.api = false;
   server
