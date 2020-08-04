@@ -60,8 +60,6 @@ export default function configServer(config) {
   const groups = GroupController(groupModel, auth);
   const settingModel = new Settings(db);
   const settings = SettingController(settingModel, auth);
-  const oauthModel = new Oauth(db);
-  const oauth = OauthController(oauthModel);
   const instances = InstanceController(instanceModel, auth);
   instances.use('/instances/:iid', users.routes(), users.allowedMethods());
   const apiV1Router = compose([
@@ -73,8 +71,6 @@ export default function configServer(config) {
     instances.allowedMethods(),
     settings.routes(),
     settings.allowedMethods(),
-    oauth.routes(),
-    oauth.allowedMethods(),
     ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
   ]);
 
@@ -83,19 +79,6 @@ export default function configServer(config) {
 
   // Specify that this is our backend API (for better-errror-handler)
   server.context.api = true;
-
-  // Setup session middleware
-  server.use(async (ctx, next) => {
-    let session = await sessionWrapper(server, db);
-    await session(ctx, next);
-  });
-
-  // Set up oauth server
-  server.oauth = oauthserver({
-    model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
-    grants: ['password'],
-    debug: true,
-  });
 
   // If we're running behind Cloudflare, set the access parameters.
   if (config.cfaccess_url && config.cfaccess_audience) {
@@ -129,6 +112,31 @@ export default function configServer(config) {
     .use(passport.session())
     .use(cors())
     .use(mount('/api/v1', apiV1Router));
+
+  // Setup session middleware
+  server.use(async (ctx, next) => {
+    let session = await sessionWrapper(server, db);
+    await session(ctx, next);
+  });
+
+  // Set up oauth server
+  const oauthModel = new Oauth(db);
+
+  server.oauth = oauthserver({
+    model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
+    grants: ['password'],
+    debug: true,
+  });
+
+  const oauth = OauthController(oauthModel, auth, server);
+  const oauthRouter = compose([
+    oauth.routes(),
+    oauth.allowedMethods(),
+    ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
+  ]);
+
+  // Mount `oauth2` route prefix.
+  server.use(mount('/oauth2', oauthRouter));
 
   server.context.api = false;
   server

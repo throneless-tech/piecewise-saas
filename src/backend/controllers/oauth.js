@@ -3,16 +3,16 @@ import Router from '@koa/router';
 
 // const log = getLogger('backend:controllers:oauth');
 
-export default function controller(oauths, thisUser) {
+export default function controller(oauths, thisUser, server) {
   const router = new Router();
 
   // Post token.
-  router.post('/oauth/token', async () => {
-    return router.oauth.grant();
+  router.post('/token', async () => {
+    server.oauth.grant();
   });
 
   // Get authorization.
-  router.get('/oauth/authorize', async ctx => {
+  router.get('/authorize', async ctx => {
     // Redirect anonymous users to login page.
     if (!thisUser) {
       return ctx.redirect('/');
@@ -23,7 +23,7 @@ export default function controller(oauths, thisUser) {
   });
 
   // Post authorization.
-  router.post('/oauth/authorize', async ctx => {
+  router.post('/authorize', async ctx => {
     // Redirect anonymous users to login page.
     if (!thisUser) {
       return ctx.redirect('/');
