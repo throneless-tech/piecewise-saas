@@ -28,7 +28,7 @@ export default function controller(oauths, thisUser, server) {
     if (!thisUser) {
       return ctx.redirect('/');
     }
-    await router.oauth.authorize();
+    await server.oauth.authorise();
   });
 
   return router;
