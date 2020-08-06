@@ -6,7 +6,7 @@ import Router from '@koa/router';
 export default function controller(oauths, thisUser, server) {
   const router = new Router();
 
-  router.get('/hello', ctx => {
+  router.get('/login', ctx => {
     console.log('*******************');
     console.log(ctx.session);
     console.log('*******************');

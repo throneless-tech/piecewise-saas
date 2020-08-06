@@ -21,6 +21,7 @@ const sessionWrapper = async (server, db) => {
           .fill()
           .map(() => ({ key: uuidv4() }));
         server.keys = newKeys.map(item => item.key);
+        server.keys.push('grant');
         await db.table('session_keys').insert(newKeys);
       }
     }

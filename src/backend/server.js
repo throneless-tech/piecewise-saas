@@ -116,32 +116,36 @@ export default function configServer(config) {
     .use(cors())
     .use(mount('/api/v1', apiV1Router));
 
-  server.use(
-    koaGrant({
-      defaults: {
-        origin: 'http://localhost:3000',
-        transport: 'session',
-      },
-      google: {
-        key: 'APP_ID',
-        secret: 'APP_SECRET',
-        callback: '/hello',
-        scope: ['openid'],
-      },
-      twitter: {
-        key: 'CONSUMER_KEY',
-        secret: 'CONSUMER_SECRET',
-        callback: '/hi',
-      },
-    }),
-  );
-
   server.use(async (ctx, next) => {
+    // console.log('***************************');
+    // console.log(ctx);
+    // console.log('***************************');
     let session = await sessionWrapper(server, db);
     await session(ctx, next);
   });
 
   // Set up oauth server
+  server.use(
+    mount(
+      koaGrant({
+        defaults: {
+          protocol: 'http',
+          host: 'localhost:3000',
+          // origin: 'http://localhost:3000',
+          transport: 'session',
+          response: ['tokens'],
+          state: true,
+        },
+        google: {
+          // key: 'APP_ID',
+          // secret: 'APP_SECRET',
+          callback: '/login',
+          scope: ['openid'],
+        },
+      }),
+    ),
+  );
+
   const oauthModel = new Oauth(db);
 
   // server.oauth = oauthServer({
