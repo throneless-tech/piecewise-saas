@@ -14,6 +14,7 @@ const sessionWrapper = async (server, db) => {
       if (Array.isArray(keys) && keys.length > 0) {
         log.info('Loading session keys.');
         server.keys = keys.map(item => item.key);
+        server.keys.push('grant');
       } else {
         log.info('Generating new session keys.');
         const newKeys = Array(2)

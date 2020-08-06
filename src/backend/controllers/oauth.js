@@ -6,10 +6,24 @@ import Router from '@koa/router';
 export default function controller(oauths, thisUser, server) {
   const router = new Router();
 
-  // Post token.
-  router.post('/token', async () => {
-    server.oauth.grant();
+  router.get('/hello', ctx => {
+    console.log('*******************');
+    console.log(ctx.session);
+    console.log('*******************');
+    ctx.body = JSON.stringify(ctx.session.grant.response, null, 2);
   });
+
+  router.get('/hi', ctx => {
+    ctx.body = JSON.stringify(ctx.session.grant.response, null, 2);
+  });
+
+  // Post token.
+  // router.post('/token', async ctx => {
+  //   console.log('*******************');
+  //   console.log(ctx);
+  //   console.log('*******************');
+  //   await server.oauth.grant();
+  // });
 
   // Get authorization.
   router.get('/authorize', async ctx => {

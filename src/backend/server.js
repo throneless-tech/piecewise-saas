@@ -1,12 +1,13 @@
 import path from 'path';
 import Koa from 'koa';
+import grant from 'grant';
 import compose from 'koa-compose';
 import cors from '@koa/cors';
 import log4js from 'koa-log4';
 import bodyParser from 'koa-body';
 import flash from 'koa-better-flash';
 import mount from 'koa-mount';
-import oauthserver from 'koa-oauth-server';
+import oauthServer from 'koa-oauth-server';
 import serveStatic from 'koa-static';
 import passport from 'koa-passport';
 import koa404handler from 'koa-404-handler';
@@ -106,6 +107,8 @@ export default function configServer(config) {
     log.warn('Disable proxy header support.');
   }
 
+  const koaGrant = grant.koa();
+
   server
     .use(bodyParser({ multipart: true, json: true }))
     .use(passport.initialize())
@@ -113,7 +116,26 @@ export default function configServer(config) {
     .use(cors())
     .use(mount('/api/v1', apiV1Router));
 
-  // Setup session middleware
+  server.use(
+    koaGrant({
+      defaults: {
+        origin: 'http://localhost:3000',
+        transport: 'session',
+      },
+      google: {
+        key: 'APP_ID',
+        secret: 'APP_SECRET',
+        callback: '/hello',
+        scope: ['openid'],
+      },
+      twitter: {
+        key: 'CONSUMER_KEY',
+        secret: 'CONSUMER_SECRET',
+        callback: '/hi',
+      },
+    }),
+  );
+
   server.use(async (ctx, next) => {
     let session = await sessionWrapper(server, db);
     await session(ctx, next);
@@ -122,11 +144,11 @@ export default function configServer(config) {
   // Set up oauth server
   const oauthModel = new Oauth(db);
 
-  server.oauth = oauthserver({
-    model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
-    grants: ['password'],
-    debug: true,
-  });
+  // server.oauth = oauthServer({
+  //   model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
+  //   // grants: ['password'],
+  //   debug: true,
+  // });
 
   const oauth = OauthController(oauthModel, auth, server);
   const oauthRouter = compose([
