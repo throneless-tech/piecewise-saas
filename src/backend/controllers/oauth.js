@@ -3,7 +3,7 @@ import Router from '@koa/router';
 
 // const log = getLogger('backend:controllers:oauth');
 
-export default function controller(oauths, thisUser, server) {
+export default function controller(oauth, thisUser, server) {
   const router = new Router();
 
   // Post token.

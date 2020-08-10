@@ -1,18 +1,16 @@
 import { validate } from '../../common/schemas/oauth.js';
 import { BadRequestError } from '../../common/errors.js';
 
-/**
- * Initialize the QueueManager data model
- *
- * @class
- */
 export default class Oauth {
   constructor(db) {
     this._db = db;
   }
 
   async getAccessToken(bearerToken) {
-    return this._db
+    console.log('*******************');
+    console.log('token: ', bearerToken);
+    console.log('*******************');
+    return await this._db
       .table('oauth_tokens')
       .select('*')
       .where({ access_token: bearerToken });
@@ -33,6 +31,9 @@ export default class Oauth {
   }
 
   async saveAccessToken(token, client, user) {
+    console.log('*******************');
+    console.log('token: ', token);
+    console.log('*******************');
     try {
       await validate(token);
 
