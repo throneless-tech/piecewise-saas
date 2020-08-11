@@ -6,10 +6,21 @@ export default class Oauth {
     this._db = db;
   }
 
+  getClient(clientId, clientSecret) {
+    console.log('client credentials');
+    return {
+      id: 'someid',
+      clientId,
+      clientSecret,
+      name: 'Piecewise',
+      grants: ['password', 'authorization_code'],
+      accessTokenLifeTime: 15 * 60,
+      refreshTokenLifeTime: 30 * 24 * 60 * 60,
+      redirectUris: ['http://google.com'],
+    };
+  }
+
   async getAccessToken(bearerToken) {
-    console.log('*******************');
-    console.log('token: ', bearerToken);
-    console.log('*******************');
     return await this._db
       .table('oauth_tokens')
       .select('*')
@@ -31,9 +42,6 @@ export default class Oauth {
   }
 
   async saveAccessToken(token, client, user) {
-    console.log('*******************');
-    console.log('token: ', token);
-    console.log('*******************');
     try {
       await validate(token);
 

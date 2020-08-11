@@ -6,7 +6,6 @@ import log4js from 'koa-log4';
 import bodyParser from 'koa-body';
 import flash from 'koa-better-flash';
 import mount from 'koa-mount';
-import oauthserver from 'koa-oauth-server';
 import serveStatic from 'koa-static';
 import passport from 'koa-passport';
 import koa404handler from 'koa-404-handler';
@@ -17,6 +16,7 @@ import cloudflareAccess from './middleware/cloudflare.js';
 import currentInstance from './middleware/instance.js';
 import sessionWrapper from './middleware/session.js';
 //import ssr from './middleware/ssr.js';
+import KoaOAuth2Server from './middleware/oauth.js';
 import UserController from './controllers/user.js';
 import GroupController from './controllers/group.js';
 import InstanceController from './controllers/instance.js';
@@ -74,6 +74,18 @@ export default function configServer(config) {
     ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
   ]);
 
+  // Set up oauth server
+  const oauthModel = new Oauth(db);
+
+  const koaOAuth2Server = new KoaOAuth2Server({ model: oauthModel });
+
+  const oauth = OauthController(oauthModel, koaOAuth2Server, auth);
+  const oauthRouter = compose([
+    oauth.routes(),
+    oauth.allowedMethods(),
+    ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
+  ]);
+
   // Set custom error handler
   server.context.onerror = errorHandler;
 
@@ -111,32 +123,14 @@ export default function configServer(config) {
     .use(passport.initialize())
     .use(passport.session())
     .use(cors())
-    .use(mount('/api/v1', apiV1Router));
+    .use(mount('/api/v1', apiV1Router))
+    .use(mount('/oauth2', oauthRouter));
 
   // Setup session middleware
   server.use(async (ctx, next) => {
     let session = await sessionWrapper(server, db);
     await session(ctx, next);
   });
-
-  // Set up oauth server
-  const oauthModel = new Oauth(db);
-
-  server.oauth = oauthserver({
-    model: oauthModel, // See https://github.com/thomseddon/node-oauth2-server for specification
-    grants: ['password'],
-    debug: true,
-  });
-
-  const oauth = OauthController(oauthModel, auth, server);
-  const oauthRouter = compose([
-    oauth.routes(),
-    oauth.allowedMethods(),
-    ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
-  ]);
-
-  // Mount `oauth2` route prefix.
-  server.use(mount('/oauth2', oauthRouter));
 
   server.context.api = false;
   server

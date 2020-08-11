@@ -3,12 +3,18 @@ import Router from '@koa/router';
 
 // const log = getLogger('backend:controllers:oauth');
 
-export default function controller(oauth, thisUser, server) {
+export default function controller(model, server, thisUser) {
   const router = new Router();
 
   // Post token.
-  router.post('/token', async () => {
-    server.oauth.grant();
+  router.post('/token', server.token(), ctx => {
+    if (!ctx.token) {
+      ctx.status = 400;
+      ctx.body = 'Now Allowed';
+    } else {
+      ctx.body = ctx.token;
+      ctx.status = 200;
+    }
   });
 
   // Get authorization.
@@ -30,6 +36,23 @@ export default function controller(oauth, thisUser, server) {
     }
     await server.oauth.authorise();
   });
+
+  router.post(
+    '/authorize',
+    server.authorizeMiddleware({
+      authenticateHandler: {
+        handle(request, response) {
+          return {
+            username: 3,
+            password: 4,
+          };
+        },
+      },
+    }),
+    ctx => {
+      ctx.body = ctx.code;
+    },
+  );
 
   return router;
 }
