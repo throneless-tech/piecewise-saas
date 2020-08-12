@@ -1,6 +1,8 @@
+import path from 'path';
 import Router from '@koa/router';
-import moment from 'moment';
 import Joi from '@hapi/joi';
+import compose from 'docker-compose';
+import moment from 'moment';
 import { BadRequestError } from '../../common/errors.js';
 import {
   validateCreation,
@@ -9,6 +11,8 @@ import {
 import { getLogger } from '../log.js';
 
 const log = getLogger('backend:controllers:instance');
+
+const __dirname = path.resolve();
 
 const query_schema = Joi.object({
   start: Joi.number()
@@ -51,6 +55,31 @@ export default function controller(instances, thisUser) {
       if (Number.isInteger(instance[0])) {
         instance = await instances.findById(instance[0]);
       }
+
+      compose
+        .upAll({
+          cwd: path.join(__dirname, '../instances'),
+          log: true,
+          composeOptions: [['--project-name', `Piecewise_${data.id}`]],
+          commandOptions: ['--build', '--detach'],
+        })
+        .then(
+          res => {
+            console.log('************************');
+            console.log('res: ', res);
+            console.log('************************');
+            return;
+          },
+          err => {
+            console.log('************************');
+            console.log('err: ', err);
+            console.log('************************');
+            log.error('An error occurred: ', err.message);
+          },
+        )
+        .catch(err => {
+          log.error('An error occurred: ', err);
+        });
     } catch (err) {
       log.error('HTTP 400 Error: ', err);
       ctx.throw(400, `Failed to parse instance schema: ${err}`);
