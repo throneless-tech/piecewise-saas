@@ -13,6 +13,10 @@ const creationSchema = Joi.array()
       db_name: Joi.string().required(),
       db_user: Joi.string().required(),
       db_password: Joi.string().required(),
+      secret: Joi.string().required(),
+      redirect_uri: Joi.string()
+        .uri()
+        .required(),
     }),
   )
   .min(1);
@@ -29,6 +33,10 @@ const updateSchema = Joi.array()
       db_name: Joi.string().required(),
       db_user: Joi.string().required(),
       db_password: Joi.string().required(),
+      secret: Joi.string().required(),
+      redirect_uri: Joi.string()
+        .uri()
+        .required(),
     }).min(1),
   )
   .min(1);

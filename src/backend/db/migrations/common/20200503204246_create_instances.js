@@ -19,6 +19,8 @@ export function up(knex) {
         table.text('db_name');
         table.text('db_user');
         table.text('db_password');
+        table.text('secret');
+        table.text('redirect_uri');
         table.timestamps(true, true);
       })
       .then(() =>

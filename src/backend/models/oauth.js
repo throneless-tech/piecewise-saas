@@ -2,6 +2,9 @@ import bcrypt from 'bcryptjs';
 import { validate } from '../../common/schemas/oauth.js';
 import { BadRequestError, ForbiddenError } from '../../common/errors.js';
 
+const accessTokenLifeTime = 15 * 60;
+const refreshTokenLifeTime = 30 * 24 * 60 * 60;
+
 function comparePass(userPassword, databasePassword) {
   return bcrypt.compareSync(userPassword, databasePassword);
 }
@@ -33,10 +36,17 @@ export default class Oauth {
   }
 
   async getClient(clientId, clientSecret) {
-    return this._db
-      .table('oauth_clients')
+    const client = await this._db
+      .table('instances')
       .select('*')
-      .where({ client_id: clientId, client_secret: clientSecret });
+      .where({ domain: clientId, secret: clientSecret });
+    return {
+      id: client.domain,
+      grants: ['password'],
+      accessTokenLifeTime: accessTokenLifeTime,
+      refreshTokenLifeTime: refreshTokenLifeTime,
+      redirectUris: [client.redirect_uri],
+    };
   }
 
   async getUser(username, password) {
