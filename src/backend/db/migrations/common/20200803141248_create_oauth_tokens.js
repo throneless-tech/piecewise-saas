@@ -21,7 +21,9 @@ export function up(knex) {
       table.timestamps(true, true);
     })
     .then(() =>
-      knex.raw(onUpdateTrigger(knex.context.client.config.client, 'oauth_tokens')),
+      knex.raw(
+        onUpdateTrigger(knex.context.client.config.client, 'oauth_tokens'),
+      ),
     );
 }
 

@@ -1,58 +1,50 @@
 import Router from '@koa/router';
-// import { getLogger } from '../log.js';
+import oauthWrapper from '../middleware/oauth.js';
+//import { getLogger } from '../log.js';
 
-// const log = getLogger('backend:controllers:oauth');
+//const log = getLogger('backend:controllers:oauth');
 
-export default function controller(model, server, thisUser) {
+export default function controller(oauth) {
   const router = new Router();
-
-  // Post token.
-  router.post('/token', server.token(), ctx => {
-    if (!ctx.token) {
-      ctx.status = 400;
-      ctx.body = 'Now Allowed';
-    } else {
-      ctx.body = ctx.token;
-      ctx.status = 200;
-    }
-  });
-
-  // Get authorization.
-  router.get('/authorize', async ctx => {
-    // Redirect anonymous users to login page.
-    if (!thisUser) {
-      return ctx.redirect('/');
-    } else {
-      ctx.state.client_id = this.request.query.client_id;
-      ctx.state.redirect_uri = this.request.query.redirect_uri;
-    }
-  });
+  const { authorization, token } = oauthWrapper({ model: oauth });
 
   // Post authorization.
-  router.post('/authorize', async ctx => {
+  router.post('/authorize', authorization, async ctx => {
     // Redirect anonymous users to login page.
-    if (!thisUser) {
-      return ctx.redirect('/');
+    if (!ctx.isAuthenticated()) {
+      return ctx.redirect('/login');
     }
-    await server.oauth.authorise();
+
+    if (ctx.state.oauth && ctx.state.oauth.code) {
+      ctx.response.body = {
+        statusCode: 200,
+        status: 'ok',
+        data: ctx.state.oauth.code,
+      };
+      ctx.response.status = 200;
+    } else {
+      ctx.throw(403, 'Code denied.');
+    }
   });
 
-  router.post(
-    '/authorize',
-    server.authorizeMiddleware({
-      authenticateHandler: {
-        handle(request, response) {
-          return {
-            username: 3,
-            password: 4,
-          };
-        },
-      },
-    }),
-    ctx => {
-      ctx.body = ctx.code;
-    },
-  );
+  // Post token.
+  router.post('/token', token, async ctx => {
+    // Redirect anonymous users to login page.
+    if (!ctx.isAuthenticated()) {
+      return ctx.redirect('/login');
+    }
+
+    if (ctx.state.oauth && ctx.state.oauth.token) {
+      ctx.response.body = {
+        statusCode: 200,
+        status: 'ok',
+        data: ctx.state.oauth.code,
+      };
+      ctx.response.status = 200;
+    } else {
+      ctx.throw(403, 'Token denied.');
+    }
+  });
 
   return router;
 }

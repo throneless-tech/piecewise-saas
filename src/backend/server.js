@@ -16,7 +16,6 @@ import cloudflareAccess from './middleware/cloudflare.js';
 import currentInstance from './middleware/instance.js';
 import sessionWrapper from './middleware/session.js';
 //import ssr from './middleware/ssr.js';
-import KoaOAuth2Server from './middleware/oauth.js';
 import UserController from './controllers/user.js';
 import GroupController from './controllers/group.js';
 import InstanceController from './controllers/instance.js';
@@ -76,10 +75,7 @@ export default function configServer(config) {
 
   // Set up oauth server
   const oauthModel = new Oauth(db);
-
-  const koaOAuth2Server = new KoaOAuth2Server({ model: oauthModel });
-
-  const oauth = OauthController(oauthModel, koaOAuth2Server, auth);
+  const oauth = OauthController(oauthModel);
   const oauthRouter = compose([
     oauth.routes(),
     oauth.allowedMethods(),
