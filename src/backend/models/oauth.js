@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { validate } from '../../common/schemas/oauth.js';
-import { BadRequestError, ForbiddenError } from '../../common/errors.js';
+import { BadRequestError } from '../../common/errors.js';
 
 const accessTokenLifeTime = 15 * 60;
 const refreshTokenLifeTime = 30 * 24 * 60 * 60;
@@ -13,20 +13,6 @@ export default class Oauth {
   constructor(db) {
     this._db = db;
   }
-
-  //getClient(clientId, clientSecret) {
-  //  console.log('client credentials');
-  //  return {
-  //    id: 'someid',
-  //    clientId,
-  //    clientSecret,
-  //    name: 'Piecewise',
-  //    grants: ['password', 'authorization_code'],
-  //    accessTokenLifeTime: 15 * 60,
-  //    refreshTokenLifeTime: 30 * 24 * 60 * 60,
-  //    redirectUris: ['http://google.com'],
-  //  };
-  //}
 
   async getAccessToken(bearerToken) {
     return await this._db
@@ -52,10 +38,10 @@ export default class Oauth {
   async getUser(username, password) {
     try {
       const user = await this.findByUsername(username, true);
-      if (!comparePass(password, user.password)) {
+      if (!user || !comparePass(password, user.password)) {
         return user;
       } else {
-        throw new ForbiddenError('Authentication failed');
+        return false;
       }
     } catch (err) {
       throw new BadRequestError('Error fetching user: ', err);
