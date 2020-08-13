@@ -13,12 +13,6 @@ export function up(knex) {
           .unique()
           .index()
           .notNullable();
-        table.text('host');
-        table.text('db_host');
-        table.integer('db_port');
-        table.text('db_name');
-        table.text('db_user');
-        table.text('db_password');
         table.text('secret');
         table.text('redirect_uri');
         table.timestamps(true, true);

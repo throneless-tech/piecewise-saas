@@ -7,16 +7,16 @@ export function up(knex) {
         .increments('id')
         .primary()
         .unsigned();
-      table.uuid('user_id').notNullable();
+      table.integer('user_id').notNullable();
       // .defaultTo(knex.raw('uuid_generate_v4()'));
       table.string('access_token').notNullable();
       table
-        .timestamp('access_token_expires_on', { useTz: false })
+        .timestamp('access_token_expires_at', { useTz: false })
         .notNullable();
       table.string('client_id').notNullable();
       table.string('refresh_token').notNullable();
       table
-        .timestamp('refresh_token_expires_on', { useTz: false })
+        .timestamp('refresh_token_expires_at', { useTz: false })
         .notNullable();
       table.timestamps(true, true);
     })
