@@ -56,12 +56,18 @@ export default function controller(instances, thisUser) {
         instance = await instances.findById(instance[0]);
       }
 
+      const options = [
+        ['--file', '../instances/docker-compose.yml'],
+        ['--project-name', `Piecewise_${data.id}`],
+        '--build',
+        '--detach',
+      ];
+
       compose
         .upAll({
-          cwd: path.join(__dirname, '../instances'),
+          cwd: path.join(__dirname),
           log: true,
-          composeOptions: [['--project-name', `Piecewise_${data.id}`]],
-          commandOptions: ['--build', '--detach'],
+          options,
         })
         .then(
           res => {

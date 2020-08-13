@@ -71,6 +71,7 @@ export default class InstanceManager {
     const rows = await this._db
       .select({
         id: 'instances.id',
+        name: 'instances.name',
         domain: 'instances.domain',
         host: 'instances.host',
         db_host: 'instances.db_host',

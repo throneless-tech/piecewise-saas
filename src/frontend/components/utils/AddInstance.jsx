@@ -15,8 +15,6 @@ import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
@@ -74,39 +72,6 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
 }));
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={3}>
-          <Typography component="div">{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `add-instance-tab-${index}`,
-    'aria-controls': `add-instance-tabpanel-${index}`,
-  };
-}
 
 const useForm = (callback, validated) => {
   const [inputs, setInputs] = useState({});
@@ -197,13 +162,6 @@ export default function AddInstance(props) {
     return errorString;
   };
 
-  //handle tabs
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
   // handle close
   const handleClose = () => {
     onClose();
@@ -224,7 +182,9 @@ export default function AddInstance(props) {
       })
       .then(result => {
         if (status === 201) {
-          alert('Instance submitted successfully.');
+          alert(
+            'Instance submitted successfully. Please allow a few minutes for instance set up to complete.',
+          );
           onClose(inputs, result.data[0]);
           return;
         } else {
@@ -306,202 +266,98 @@ export default function AddInstance(props) {
         </Grid>
       </Grid>
       <Box m={4}>
-        <AppBar position="static" className={classes.appBar}>
-          <Tabs
-            indicatorColor="primary"
-            textColor="primary"
-            value={value}
-            onChange={handleChange}
-            aria-label="add instance tabs"
-          >
-            <Tab label="Basic info" {...a11yProps(0)} />
-            <Tab label="Network" {...a11yProps(1)} />
-          </Tabs>
-        </AppBar>
-        <TabPanel value={value} index={0}>
-          <Typography variant="overline" display="block" gutterBottom>
-            Instance Details
-          </Typography>
-          <TextField
-            error={errors && errors.name}
-            helperText={helperText.name}
-            className={classes.formField}
-            id="instance-name"
-            label="Instance Name"
-            name="name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.name}
-            required
-          />
-          <TextField
-            error={errors && errors.domain}
-            helperText={helperText.domain}
-            className={classes.formField}
-            id="instance-domain"
-            label="Domain"
-            name="domain"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.domain}
-            required
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-host"
-            label="Host"
-            name="host"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.host}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-db-host"
-            label="DB Host"
-            name="db_host"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.db_host}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-db-port"
-            label="DB Port"
-            name="db_port"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.db_port}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-db-name"
-            label="DB Name"
-            name="db_name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.db_name}
-            required
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-db-user"
-            label="DB User"
-            name="db_user"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.db_user}
-            required
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-db-password"
-            label="DB Password"
-            name="db_password"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.db_password}
-            required
-          />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <TextField
-            className={classes.formField}
-            id="instance-network-name"
-            label="Network name"
-            name="network_name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.network_name}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-isp"
-            label="ISP (company)"
-            name="isp"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.isp}
-          />
-          <Grid container alignItems="center">
-            <Grid item>
-              <Typography variant="body2" display="block">
-                Contracted Speed
-              </Typography>
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-contracted-speed-download"
-                label="Download"
-                name="contracted_speed_download"
-                variant="outlined"
-                onChange={handleInputChange}
-                value={inputs.contracted_speed_download}
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-contracted-speed-upload"
-                label="Upload"
-                name="contracted_speed_upload"
-                variant="outlined"
-                onChange={handleInputChange}
-                value={inputs.contracted_speed_upload}
-              />
-            </Grid>
-          </Grid>
-          <TextField
-            className={classes.formField}
-            id="instance-ip"
-            label="IP address of custom DNS server (if applicable)"
-            name="ip"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.ip}
-          />
-          <Grid container alignItems="center">
-            <Grid item>
-              <Typography variant="body2" display="block">
-                Per device bandwidth caps
-              </Typography>
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-bandwidth-cap-download"
-                label="Download"
-                name="bandwidth_cap_download"
-                variant="outlined"
-                onChange={handleInputChange}
-                value={inputs.bandwidth_cap_download}
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-bandwidth-cap-upload"
-                label="Upload"
-                name="bandwidth_cap_upload"
-                variant="outlined"
-                onChange={handleInputChange}
-                value={inputs.bandwidth_cap_upload}
-              />
-            </Grid>
-          </Grid>
-        </TabPanel>
+        <Typography variant="overline" display="block" gutterBottom>
+          Instance Details
+        </Typography>
+        <TextField
+          error={errors && errors.name}
+          helperText={helperText.name}
+          className={classes.formField}
+          id="instance-name"
+          label="Instance Name"
+          name="name"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.name}
+          required
+        />
+        <TextField
+          error={errors && errors.domain}
+          helperText={helperText.domain}
+          className={classes.formField}
+          id="instance-domain"
+          label="Domain"
+          name="domain"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.domain}
+          required
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-host"
+          label="Host"
+          name="host"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.host}
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-db-host"
+          label="DB Host"
+          name="db_host"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.db_host}
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-db-port"
+          label="DB Port"
+          name="db_port"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.db_port}
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-db-name"
+          label="DB Name"
+          name="db_name"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.db_name}
+          required
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-db-user"
+          label="DB User"
+          name="db_user"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.db_user}
+          required
+        />
+        <TextField
+          className={classes.formField}
+          id="instance-db-password"
+          label="DB Password"
+          name="db_password"
+          fullWidth
+          variant="outlined"
+          onChange={handleInputChange}
+          value={inputs.db_password}
+          required
+        />
         <div className={classes.saveButtonContainer}>
           <Button
             type="submit"

@@ -60,16 +60,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function formatName(first, last) {
-  return `${first} ${last}`;
-}
-
-function formatRole(role) {
-  if (typeof role === 'string' || role instanceof String) {
-    return role.charAt(0).toUpperCase() + role.slice(1);
-  }
-}
-
 export default function ViewInstance(props) {
   const classes = useStyles();
   const theme = useTheme();
@@ -185,16 +175,28 @@ export default function ViewInstance(props) {
       </Grid>
       <Box className={classes.box}>
         <Typography component="p" variant="subtitle2" gutterBottom>
-          {formatName(row.firstName, row.lastName)}
+          Name: {row.name}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
-          {row.email}
+          Domain: {row.domain}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
-          {row.location_name}
+          Host: {row.host}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
-          {formatRole(row.role_name)}
+          DB Host: {row.db_host}
+        </Typography>
+        <Typography component="p" variant="body2" gutterBottom>
+          DB Port: {row.db_port}
+        </Typography>
+        <Typography component="p" variant="body2" gutterBottom>
+          DB Name: {row.db_name}
+        </Typography>
+        <Typography component="p" variant="body2" gutterBottom>
+          DB User: {row.db_user}
+        </Typography>
+        <Typography component="p" variant="body2" gutterBottom>
+          DB Password: {row.db_password ? '*********' : ''}
         </Typography>
       </Box>
       <Button

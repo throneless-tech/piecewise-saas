@@ -3,7 +3,7 @@ import React, { Suspense } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
-import { useHistory } from 'react-router-dom';
+// import { useHistory } from 'react-router-dom';
 
 // material ui imports
 import Button from '@material-ui/core/Button';
@@ -86,6 +86,7 @@ function EnhancedTableHead(props) {
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
             >
+              {headCell.label}
               {orderBy === headCell.id ? (
                 <span className={classes.visuallyHidden}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
@@ -129,7 +130,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 const EnhancedTableToolbar = props => {
   const classes = useToolbarStyles();
-  const { updateRows } = props;
+  const { updateRows, instance } = props;
 
   // handle add instance
   const [open, setOpen] = React.useState(false);
@@ -172,6 +173,7 @@ const EnhancedTableToolbar = props => {
 
 EnhancedTableToolbar.propTypes = {
   updateRows: PropTypes.func.isRequired,
+  instance: PropTypes.object.isRequired,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -196,7 +198,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function EnhancedTable(props) {
-  const history = useHistory();
+  // const history = useHistory();
   const classes = useStyles();
   const { instance } = props;
 
@@ -238,6 +240,7 @@ export default function EnhancedTable(props) {
 
   const addData = row => {
     const newRow = [...rows, row];
+    console.log('row: ', row);
     setRows(newRow);
   };
 
@@ -245,7 +248,7 @@ export default function EnhancedTable(props) {
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [rows, setRows] = React.useState([]);
-  const [users, setUsers] = React.useState([]);
+  // const [users, setUsers] = React.useState([]);
 
   const processError = res => {
     let errorString;
@@ -269,6 +272,7 @@ export default function EnhancedTable(props) {
       })
       .then(instances => {
         if (status === 200) {
+          console.log('instances: ', instances.data);
           setRows(instances.data);
           emptyRows =
             rowsPerPage -
@@ -286,7 +290,7 @@ export default function EnhancedTable(props) {
       })
       .then(users => {
         if (userStatus === 200) {
-          setUsers(users.data);
+          // setUsers(users.data);
           setIsLoaded(true);
           return;
         } else {
@@ -309,7 +313,7 @@ export default function EnhancedTable(props) {
     return (
       <Suspense fallback={<Loading />}>
         <div className={classes.root}>
-          <EnhancedTableToolbar updateRows={addData} />
+          <EnhancedTableToolbar updateRows={addData} instance={instance} />
           <TableContainer>
             <Table
               className={classes.table}
