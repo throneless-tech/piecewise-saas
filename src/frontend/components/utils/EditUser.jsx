@@ -131,7 +131,7 @@ export default function EditUser(props) {
           return;
         } else {
           processError(results);
-          throw new Error(`Error in response from server.`);
+          throw new Error(`Error in response from server: ${results.message}`);
         }
       })
       .catch(error => {
@@ -205,7 +205,7 @@ export default function EditUser(props) {
     return (
       <Dialog
         onClose={handleClose}
-        modal={true}
+        modal="true"
         open={open}
         aria-labelledby="edit-user-title"
         fullWidth={true}
@@ -214,7 +214,7 @@ export default function EditUser(props) {
       >
         <Button
           label="Close"
-          primary={true}
+          primary="true"
           onClick={handleClose}
           className={classes.closeButton}
         >
@@ -303,7 +303,7 @@ export default function EditUser(props) {
               <Button
                 size="small"
                 label="Cancel"
-                primary={true}
+                primary="true"
                 onClick={handleClose}
                 className={classes.cancelButton}
               >
@@ -319,7 +319,7 @@ export default function EditUser(props) {
                 variant="contained"
                 disableElevation
                 color="primary"
-                primary={true}
+                primary="true"
               >
                 Save
               </Button>

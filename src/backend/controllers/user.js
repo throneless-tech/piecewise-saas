@@ -158,14 +158,14 @@ export default function controller(users, thisUser) {
 
   router.post('/users', thisUser.can('access admin pages'), async ctx => {
     log.debug('Adding new user.');
-    let user, lid;
+    let user, iid;
 
-    if (ctx.params.lid) {
-      lid = ctx.params.lid;
+    if (ctx.params.iid) {
+      iid = ctx.params.iid;
     }
 
     try {
-      user = await users.create(ctx.request.body.data, lid);
+      user = await users.create(ctx.request.body.data, iid);
 
       // workaround for sqlite
       if (Number.isInteger(user)) {
@@ -210,7 +210,7 @@ export default function controller(users, thisUser) {
         sort_by: query.sort_by,
         from: from,
         to: to,
-        instance: ctx.params.lid,
+        instance: ctx.params.iid,
         group: query.group,
       });
       ctx.response.body = {
@@ -255,11 +255,11 @@ export default function controller(users, thisUser) {
     let user;
 
     try {
-      if (ctx.params.lid) {
+      if (ctx.params.iid) {
         if (!thisUser.isMemberOf('admins', ctx.state.user[0].id)) {
           ctx.throw(403, 'Access denied.');
         }
-        user = await users.addToInstance(ctx.params.lid, ctx.params.id);
+        user = await users.addToInstance(ctx.params.iid, ctx.params.id);
       } else {
         const id = parseInt(ctx.params.id);
         if (id === ctx.state.user[0].id) {
@@ -296,8 +296,8 @@ export default function controller(users, thisUser) {
     let user;
 
     try {
-      if (ctx.params.lid) {
-        user = await users.removeFromInstance(ctx.params.lid, ctx.params.id);
+      if (ctx.params.iid) {
+        user = await users.removeFromInstance(ctx.params.iid, ctx.params.id);
       } else {
         user = await users.delete(ctx.params.id);
       }

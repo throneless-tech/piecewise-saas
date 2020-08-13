@@ -173,7 +173,7 @@ const EnhancedTableToolbar = props => {
 
 EnhancedTableToolbar.propTypes = {
   updateRows: PropTypes.func.isRequired,
-  instance: PropTypes.object.isRequired,
+  instance: PropTypes.object,
 };
 
 const useStyles = makeStyles(theme => ({

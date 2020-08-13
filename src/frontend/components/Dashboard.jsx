@@ -94,38 +94,6 @@ export default function Dashboard(props) {
     return errorString;
   };
 
-  React.useEffect(() => {
-    if (!props.location.state) {
-      setInstance(props.instance);
-    } else {
-      let iid, status;
-      if (!props.location.state.instance) {
-        iid = 1;
-      } else if (isNaN(props.location.state.instance)) {
-        iid = props.location.state.instance.id;
-      } else {
-        iid = props.location.state.instance;
-      }
-      fetch(`api/v1/instances/${iid}`)
-        .then(response => {
-          status = response.status;
-          return response.json();
-        })
-        .then(instances => {
-          if (status === 200) {
-            setInstance(instances.data[0]);
-            return;
-          } else {
-            const error = processError(instances);
-            throw new Error(error);
-          }
-        })
-        .catch(error => {
-          console.error(error.name + error.message);
-        });
-    }
-  }, []);
-
   return (
     <Container className={classes.root}>
       <AppBar position="static" className={classes.appBar}>

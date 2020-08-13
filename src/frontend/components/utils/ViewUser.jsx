@@ -128,7 +128,6 @@ export default function ViewUser(props) {
 
   const handleCloseEdit = rowChanges => {
     const newRow = { ...row, ...rowChanges };
-    console.log('newRow: ', newRow);
     if (rowChanges) {
       setRow(newRow);
     }
@@ -191,7 +190,7 @@ export default function ViewUser(props) {
           {row.email}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
-          {row.location_name}
+          {row.instance_name}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
           {formatRole(row.role_name)}
