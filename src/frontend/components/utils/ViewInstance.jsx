@@ -63,7 +63,7 @@ const useStyles = makeStyles(() => ({
 export default function ViewInstance(props) {
   const classes = useStyles();
   const theme = useTheme();
-  const { onClose, open, rows, index, instance } = props;
+  const { onClose, open, rows, index, user } = props;
   const [row, setRow] = React.useState(rows[index]);
   const [openEdit, setOpenEdit] = React.useState(false);
 
@@ -91,8 +91,8 @@ export default function ViewInstance(props) {
   };
 
   // handle edit instance
-  const isAdmin = instance => {
-    if (instance.role_name != 'admins') {
+  const isAdmin = user => {
+    if (user.role_name != 'admins') {
       return null;
     } else {
       return (
@@ -167,11 +167,14 @@ export default function ViewInstance(props) {
       />
       <Grid container justify="center" alignItems="center">
         <Grid item xs={12} sm={7}>
-          <DialogTitle id="view-instance-title" className={classes.dialogTitleRoot}>
+          <DialogTitle
+            id="view-instance-title"
+            className={classes.dialogTitleRoot}
+          >
             <div className={classes.dialogTitleText}>View Instance</div>
           </DialogTitle>
         </Grid>
-        {isAdmin(instance)}
+        {isAdmin(user)}
       </Grid>
       <Box className={classes.box}>
         <Typography component="p" variant="subtitle2" gutterBottom>
@@ -179,24 +182,6 @@ export default function ViewInstance(props) {
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
           Domain: {row.domain}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          Host: {row.host}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          DB Host: {row.db_host}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          DB Port: {row.db_port}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          DB Name: {row.db_name}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          DB User: {row.db_user}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          DB Password: {row.db_password ? '*********' : ''}
         </Typography>
       </Box>
       <Button
@@ -219,5 +204,5 @@ ViewInstance.propTypes = {
   open: PropTypes.bool.isRequired,
   index: PropTypes.number.isRequired,
   rows: PropTypes.array.isRequired,
-  instance: PropTypes.object.isRequired,
+  user: PropTypes.object.isRequired,
 };

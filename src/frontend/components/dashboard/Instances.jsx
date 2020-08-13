@@ -55,7 +55,7 @@ const headCells = [
   {
     id: 'name',
     numeric: false,
-    disablePadding: false,
+    disablePadding: true,
     label: 'Name',
   },
   {
@@ -200,7 +200,7 @@ const useStyles = makeStyles(theme => ({
 export default function EnhancedTable(props) {
   // const history = useHistory();
   const classes = useStyles();
-  const { instance } = props;
+  const { user, instance } = props;
 
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('date');
@@ -361,7 +361,7 @@ export default function EnhancedTable(props) {
               rows={stableSort(rows, getComparator(order, orderBy))}
               open={open}
               onClose={handleClose}
-              instance={instance}
+              user={user}
             />
           )}
         </div>

@@ -295,69 +295,6 @@ export default function AddInstance(props) {
           value={inputs.domain}
           required
         />
-        <TextField
-          className={classes.formField}
-          id="instance-host"
-          label="Host"
-          name="host"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.host}
-        />
-        <TextField
-          className={classes.formField}
-          id="instance-db-host"
-          label="DB Host"
-          name="db_host"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.db_host}
-        />
-        <TextField
-          className={classes.formField}
-          id="instance-db-port"
-          label="DB Port"
-          name="db_port"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.db_port}
-        />
-        <TextField
-          className={classes.formField}
-          id="instance-db-name"
-          label="DB Name"
-          name="db_name"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.db_name}
-          required
-        />
-        <TextField
-          className={classes.formField}
-          id="instance-db-user"
-          label="DB User"
-          name="db_user"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.db_user}
-          required
-        />
-        <TextField
-          className={classes.formField}
-          id="instance-db-password"
-          label="DB Password"
-          name="db_password"
-          fullWidth
-          variant="outlined"
-          onChange={handleInputChange}
-          value={inputs.db_password}
-          required
-        />
         <div className={classes.saveButtonContainer}>
           <Button
             type="submit"
