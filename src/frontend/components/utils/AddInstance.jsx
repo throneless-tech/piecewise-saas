@@ -56,7 +56,6 @@ const useStyles = makeStyles(() => ({
     marginBottom: '30px',
   },
   grid: {
-    // marginLeft: "",
     marginTop: '50px',
   },
   gridItem: {
@@ -69,6 +68,7 @@ const useStyles = makeStyles(() => ({
     marginBottom: '0',
   },
   saveButtonContainer: {
+    marginBottom: '50px',
     marginLeft: 'auto',
     marginRight: 'auto',
     textAlign: 'center',
@@ -156,7 +156,7 @@ export default function AddInstance(props) {
       }));
       return false;
     } else {
-      if (!inputs.name || !inputs.primary_contact_email) {
+      if (!inputs.name || !inputs.domain) {
         if (!inputs.name) {
           setErrors(errors => ({
             ...errors,
@@ -167,14 +167,14 @@ export default function AddInstance(props) {
             name: 'Required',
           }));
         }
-        if (!validateEmail(inputs.primary_contact_email)) {
+        if (!inputs.domain) {
           setErrors(errors => ({
             ...errors,
-            email: true,
+            domain: true,
           }));
           setHelperText(helperText => ({
             ...helperText,
-            email: 'Please enter a valid email address.',
+            domain: 'This field is required.',
           }));
         }
         return false;
@@ -182,11 +182,6 @@ export default function AddInstance(props) {
         return true;
       }
     }
-  };
-
-  const validateEmail = email => {
-    const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-    return re.test(String(email).toLowerCase());
   };
 
   // handle api data errors
@@ -238,12 +233,10 @@ export default function AddInstance(props) {
         }
       })
       .catch(error => {
-        console.log(error);
         alert(
           'An error occurred. Please try again or contact an administrator.',
         );
         console.error(error.name + error.message);
-        onClose();
       });
   };
 
@@ -329,23 +322,6 @@ export default function AddInstance(props) {
           <Typography variant="overline" display="block" gutterBottom>
             Instance Details
           </Typography>
-          <FormControl variant="outlined" className={classes.formControl}>
-            <InputLabel id="instance-system-name">
-              Instance System Name (if applicable)
-            </InputLabel>
-            <Select
-              labelId="instance-system-name"
-              className={classes.formField}
-              id="instance-name"
-              label="Instance System Name (if applicable)"
-              name="instance_name"
-              onChange={handleInputChange}
-              value=""
-              disabled
-            >
-              <MenuItem value="" selected />
-            </Select>
-          </FormControl>
           <TextField
             error={errors && errors.name}
             helperText={helperText.name}
@@ -360,82 +336,80 @@ export default function AddInstance(props) {
             required
           />
           <TextField
+            error={errors && errors.domain}
+            helperText={helperText.domain}
             className={classes.formField}
-            id="instance-physical-address"
-            label="Physical Address"
-            name="physical_address"
+            id="instance-domain"
+            label="Domain"
+            name="domain"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.physical_address}
+            value={inputs.domain}
+            required
           />
           <TextField
             className={classes.formField}
-            id="instance-shipping-address"
-            label="Shipping Address"
-            name="shipping_address"
+            id="instance-host"
+            label="Host"
+            name="host"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.shipping_address}
+            value={inputs.host}
           />
           <TextField
             className={classes.formField}
-            id="instance-timezone"
-            label="Timezone"
-            name="timezone"
+            id="instance-db-host"
+            label="DB Host"
+            name="db_host"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.timezone}
+            value={inputs.db_host}
           />
           <TextField
             className={classes.formField}
-            id="instance-coordinates"
-            label="Coordinates"
-            name="coordinates"
+            id="instance-db-port"
+            label="DB Port"
+            name="db_port"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.coordinates}
-          />
-          <Typography variant="overline" display="block" gutterBottom>
-            Primary Instance Contact
-          </Typography>
-          <TextField
-            className={classes.formField}
-            id="instance-primary-contact-name"
-            label="Name"
-            name="primary_contact_name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            value={inputs.primary_contact_name}
+            value={inputs.db_port}
           />
           <TextField
-            error={errors.email}
-            helperText={helperText.email}
             className={classes.formField}
-            id="instance-primary-contact-email"
-            label="Email"
-            name="primary_contact_email"
+            id="instance-db-name"
+            label="DB Name"
+            name="db_name"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.primary_contact_email}
+            value={inputs.db_name}
+            required
           />
-          <Typography variant="overline" display="block" gutterBottom>
-            Instance Hours
-          </Typography>
           <TextField
             className={classes.formField}
-            id="instance-opening-hours"
-            label="Opening hours"
-            name="opening_hours"
+            id="instance-db-user"
+            label="DB User"
+            name="db_user"
             fullWidth
             variant="outlined"
             onChange={handleInputChange}
-            value={inputs.opening_hours}
+            value={inputs.db_user}
+            required
+          />
+          <TextField
+            className={classes.formField}
+            id="instance-db-password"
+            label="DB Password"
+            name="db_password"
+            fullWidth
+            variant="outlined"
+            onChange={handleInputChange}
+            value={inputs.db_password}
+            required
           />
         </TabPanel>
         <TabPanel value={value} index={1}>

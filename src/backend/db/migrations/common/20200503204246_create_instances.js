@@ -13,6 +13,7 @@ export function up(knex) {
           .unique()
           .index()
           .notNullable();
+        table.string('name').unique();
         table.text('host');
         table.text('db_host');
         table.integer('db_port');

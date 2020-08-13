@@ -1,7 +1,7 @@
 import path from 'path';
 import Router from '@koa/router';
 import Joi from '@hapi/joi';
-import compose from 'docker-compose';
+import * as compose from 'docker-compose';
 import moment from 'moment';
 import { BadRequestError } from '../../common/errors.js';
 import {

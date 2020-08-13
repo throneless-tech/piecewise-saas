@@ -22,7 +22,7 @@ import Typography from '@material-ui/core/Typography';
 // modules imports
 import AddInstance from '../utils/AddInstance.jsx';
 import Loading from '../Loading.jsx';
-// import ViewUser from '../utils/ViewUser.jsx';
+import ViewInstance from '../utils/ViewInstance.jsx';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -51,15 +51,19 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'name', numeric: false, disablePadding: true, label: 'mame' },
+  // { id: 'id', numeric: true, disablePadding: true, label: 'ID' },
   {
-    id: 'location',
+    id: 'name',
     numeric: false,
     disablePadding: false,
-    label: 'Location',
+    label: 'Name',
   },
-  // { id: 'users', numeric: false, disablePadding: false, label: 'Users' },
-  // { id: 'devices', numeric: false, disablePadding: false, label: 'Devices' },
+  {
+    id: 'domain',
+    numeric: false,
+    disablePadding: false,
+    label: 'Domain',
+  },
 ];
 
 function EnhancedTableHead(props) {
@@ -214,15 +218,22 @@ export default function EnhancedTable(props) {
 
   let emptyRows;
 
-  // handle view user
+  // handle view instance
   const [open, setOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
 
   const handleClickOpen = id => {
-    history.push({
-      pathname: '/dashboard',
-      state: { instance: id },
-    });
+    setIndex(index);
+    setOpen(true);
+  };
+
+  const handleClose = (instance, index) => {
+    if (instance) {
+      let editedInstances = [...rows];
+      editedInstances[index] = instance;
+      setRows(editedInstances);
+    }
+    setOpen(false);
   };
 
   const addData = row => {
@@ -318,12 +329,12 @@ export default function EnhancedTable(props) {
                   .map((row, index) => {
                     const labelId = `data-row-${index}`;
 
-                    if (row) {
+                    if (row && row.id) {
                       return (
                         <TableRow
                           hover
                           onClick={() => {
-                            handleClickOpen(row.id);
+                            handleClickOpen(index);
                           }}
                           key={row.id}
                         >
@@ -335,7 +346,7 @@ export default function EnhancedTable(props) {
                           >
                             {row.name}
                           </TableCell>
-                          <TableCell>{row.physical_address}</TableCell>
+                          <TableCell>{row.domain}</TableCell>
                         </TableRow>
                       );
                     }
@@ -356,6 +367,15 @@ export default function EnhancedTable(props) {
             page={page}
             onChangePage={handleChangePage}
           />
+          {rows.length > 0 && (
+            <ViewInstance
+              index={index + page * rowsPerPage}
+              rows={stableSort(rows, getComparator(order, orderBy))}
+              open={open}
+              onClose={handleClose}
+              instance={instance}
+            />
+          )}
         </div>
       </Suspense>
     );

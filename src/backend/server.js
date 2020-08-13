@@ -139,5 +139,6 @@ export default function configServer(config) {
         next,
       );
     });
+
   return server.callback();
 }

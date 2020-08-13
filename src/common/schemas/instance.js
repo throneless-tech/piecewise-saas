@@ -7,6 +7,7 @@ const creationSchema = Joi.array()
       domain: Joi.string()
         .domain()
         .required(),
+      name: Joi.string().required(),
       host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
       db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
       db_port: Joi.number().port(),
