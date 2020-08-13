@@ -240,7 +240,6 @@ export default function EnhancedTable(props) {
 
   const addData = row => {
     const newRow = [...rows, row];
-    console.log('row: ', row);
     setRows(newRow);
   };
 
@@ -263,7 +262,7 @@ export default function EnhancedTable(props) {
   };
 
   React.useEffect(() => {
-    let status, userStatus;
+    let status;
 
     fetch('/api/v1/instances')
       .then(res => {
@@ -272,30 +271,15 @@ export default function EnhancedTable(props) {
       })
       .then(instances => {
         if (status === 200) {
-          console.log('instances: ', instances.data);
           setRows(instances.data);
           emptyRows =
             rowsPerPage -
             Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+          setIsLoaded(true);
           return;
         } else {
           processError(instances);
           throw new Error(`Error in response from server.`);
-        }
-      })
-      .then(() => fetch('api/v1/users'))
-      .then(usersResponse => {
-        userStatus = usersResponse.status;
-        return usersResponse.json();
-      })
-      .then(users => {
-        if (userStatus === 200) {
-          // setUsers(users.data);
-          setIsLoaded(true);
-          return;
-        } else {
-          const error = processError(users);
-          throw new Error(error);
         }
       })
       .catch(error => {
