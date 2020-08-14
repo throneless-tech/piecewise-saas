@@ -117,9 +117,9 @@ export default function ViewInstance(props) {
   };
 
   const handleCloseEdit = rowChanges => {
-    const newRow = { ...row, ...rowChanges };
-    console.log('newRow: ', newRow);
+    console.log('new row: ', rowChanges);
     if (rowChanges) {
+      const newRow = { ...row, ...rowChanges };
       setRow(newRow);
     }
     setOpenEdit(false);

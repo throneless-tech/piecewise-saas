@@ -5,18 +5,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import _ from 'lodash/core';
 
 // material ui imports
-import AppBar from '@material-ui/core/AppBar';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
@@ -75,39 +68,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `edit-instance-tab-${index}`,
-    'aria-controls': `edit-instance-tabpanel-${index}`,
-  };
-}
-
 const useForm = (callback, validated) => {
   const [inputs, setInputs] = useState({});
   const handleSubmit = event => {
@@ -141,34 +101,33 @@ export default function EditInstance(props) {
   });
 
   // handle form validation
-  const validateInputs = (row, inputs) => {
-    console.log(row);
-    console.log(inputs);
+  const validateInputs = inputs => {
     setErrors({});
     setHelperText({});
     if (_.isEmpty(inputs)) {
       onClose();
       return false;
-    } else {
-      if (!inputs.name || !inputs.primary_contact_email) {
-        if (!inputs.name) {
+    }
+    if (!row.name || !row.domain) {
+      if (!inputs.name || !inputs.domain) {
+        if (!inputs.name && !row.name) {
+          console.log('no domain');
           setErrors(errors => ({
             ...errors,
             name: true,
           }));
           setHelperText(helperText => ({
             ...helperText,
-            name: 'Required',
+            name: 'This field is required.',
           }));
-        }
-        if (!validateEmail(inputs.primary_contact_email)) {
+        } else if (!inputs.domain && !row.domain) {
           setErrors(errors => ({
             ...errors,
-            email: true,
+            domain: true,
           }));
           setHelperText(helperText => ({
             ...helperText,
-            email: 'Please enter a valid email address.',
+            domain: 'This field is required.',
           }));
         }
         return false;
@@ -176,18 +135,7 @@ export default function EditInstance(props) {
         return true;
       }
     }
-  };
-
-  const validateEmail = email => {
-    const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-    return re.test(String(email).toLowerCase());
-  };
-
-  // handle tabs
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+    return true;
   };
 
   // handle close
@@ -196,17 +144,28 @@ export default function EditInstance(props) {
   };
 
   const submitData = () => {
+    const toSubmit = {
+      name: inputs.name ? inputs.name : row.name,
+      domain: inputs.domain ? inputs.domain : row.domain,
+    };
+    let status;
     fetch(`api/v1/instances/${row.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data: inputs }),
+      body: JSON.stringify({ data: toSubmit }),
     })
-      .then(response => response.json())
+      .then(response => {
+        status = response.status;
+        return response.json();
+      })
       .then(results => {
-        onClose(results.data[0]);
-        alert('Instance edited successfully.');
+        if (status === 200 || status === 201 || status === 204) {
+          console.log('results: ', results);
+          onClose(results.data[0]);
+          alert('Instance edited successfully.');
+        }
         return;
       })
       .catch(error => {
@@ -215,7 +174,6 @@ export default function EditInstance(props) {
           'An error occurred. Please try again or contact an administrator.',
         );
       });
-
     onClose();
   };
 
@@ -229,7 +187,7 @@ export default function EditInstance(props) {
   return (
     <Dialog
       onClose={handleClose}
-      modal={true}
+      modal="true"
       open={open}
       aria-labelledby="add-instance-title"
       fullWidth={true}
@@ -238,7 +196,7 @@ export default function EditInstance(props) {
     >
       <Button
         label="Close"
-        primary={true}
+        primary="true"
         onClick={handleClose}
         className={classes.closeButton}
       >
@@ -267,7 +225,7 @@ export default function EditInstance(props) {
             variant="contained"
             disableElevation
             color="primary"
-            primary={true}
+            primary="true"
           >
             Save
           </Button>
@@ -276,7 +234,7 @@ export default function EditInstance(props) {
           <Button
             size="small"
             label="Cancel"
-            primary={true}
+            primary="true"
             onClick={handleClose}
             className={classes.cancelButton}
           >
@@ -285,9 +243,6 @@ export default function EditInstance(props) {
         </Grid>
       </Grid>
       <Box m={4}>
-        <Typography variant="overline" display="block" gutterBottom>
-          Instance Details
-        </Typography>
         <TextField
           error={errors && errors.name}
           helperText={helperText.name}
@@ -302,6 +257,7 @@ export default function EditInstance(props) {
           value={inputs.name}
         />
         <TextField
+          error={errors && errors.domain}
           className={classes.formField}
           id="instance-domain"
           label="Domain"
@@ -321,7 +277,7 @@ export default function EditInstance(props) {
             variant="contained"
             disableElevation
             color="primary"
-            primary={true}
+            primary="true"
           >
             Save
           </Button>

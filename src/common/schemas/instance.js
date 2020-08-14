@@ -24,12 +24,13 @@ const updateSchema = Joi.array()
       domain: Joi.string()
         .domain()
         .required(),
+      name: Joi.string().required(),
       host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
       db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
       db_port: Joi.number().port(),
-      db_name: Joi.string().required(),
-      db_user: Joi.string().required(),
-      db_password: Joi.string().required(),
+      db_name: Joi.string(),
+      db_user: Joi.string(),
+      db_password: Joi.string(),
     }).min(1),
   )
   .min(1);

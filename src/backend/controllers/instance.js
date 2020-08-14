@@ -178,17 +178,19 @@ export default function controller(instances, thisUser) {
       let updated;
 
       try {
-        console.log('***ctx.request.body***:', ctx.request.body);
         const data = await validateUpdate(ctx.request.body.data);
         updated = await instances.update(ctx.params.id, data);
       } catch (err) {
         log.error('HTTP 400 Error: ', err);
         ctx.throw(400, `Failed to parse query: ${err}`);
       }
-      console.log('***UPDATED***:', updated);
-
       if (updated) {
-        ctx.response.status = 204;
+        const instance = await instances.findById(ctx.params.id);
+        ctx.response.body = {
+          statusCode: 204,
+          status: 'update',
+          data: instance,
+        };
       } else {
         ctx.response.body = {
           statusCode: 201,

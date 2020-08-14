@@ -114,10 +114,12 @@ export default function AddInstance(props) {
       setErrors(errors => ({
         ...errors,
         name: true,
+        domain: true,
       }));
       setHelperText(helperText => ({
         ...helperText,
         name: 'This field is required.',
+        domain: 'This field is required.',
       }));
       return false;
     } else {
