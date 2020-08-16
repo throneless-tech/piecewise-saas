@@ -3,6 +3,8 @@ import Router from '@koa/router';
 import Joi from '@hapi/joi';
 import * as compose from 'docker-compose';
 import moment from 'moment';
+import { file } from 'tmp-promise';
+
 import { BadRequestError } from '../../common/errors.js';
 import {
   validateCreation,
@@ -55,6 +57,18 @@ export default function controller(instances, thisUser) {
       if (Number.isInteger(instance[0])) {
         instance = await instances.findById(instance[0]);
       }
+
+      (async () => {
+        const { fd, path, cleanup } = await file({
+          postfix: '.env',
+        });
+        console.log('***************************');
+        console.log('fd: ', fd);
+        console.log('path: ', path);
+        console.log('cleanup: ', cleanup);
+        console.log('***************************');
+        // cleanup();
+      })();
 
       const options = [
         ['--file', '../instances/docker-compose.yml'],

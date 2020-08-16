@@ -167,6 +167,7 @@
     "react-truncate": "^2.4.0",
     "request-promise-native": "^1.0.8",
     "sqlite3": "^4.1.1",
+    "tmp-promise": "^3.0.2",
     "uuid": "3.3.2"
   },
   "babel": {
