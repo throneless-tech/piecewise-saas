@@ -185,7 +185,6 @@ export default class User {
         newPassword: user.newPassword,
         firstName: user.firstName,
         lastName: user.lastName,
-        username: user.username,
         email: user.email,
         phone: user.phone,
         extension: user.extension,
