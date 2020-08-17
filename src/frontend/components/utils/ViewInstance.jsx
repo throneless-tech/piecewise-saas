@@ -64,7 +64,7 @@ const useStyles = makeStyles(() => ({
 export default function ViewInstance(props) {
   const classes = useStyles();
   const theme = useTheme();
-  const { onClose, open, rows, index, user } = props;
+  const { onClose, onCloseDelete, open, rows, index, user } = props;
   const [row, setRow] = React.useState(rows[index]);
   const [openEdit, setOpenEdit] = React.useState(false);
 
@@ -152,12 +152,8 @@ export default function ViewInstance(props) {
           return response.json();
         })
         .then(results => {
-          if (status === 204) {
-            let updatedRows = rows.filter(
-              filteredRow => filteredRow.id !== row.id,
-            );
-            setRows(updatedRows);
-            return;
+          if (status === 200) {
+            return onCloseDelete(results.data);
           } else {
             const error = processError(results);
             throw new Error(error);
@@ -262,6 +258,7 @@ export default function ViewInstance(props) {
 
 ViewInstance.propTypes = {
   onClose: PropTypes.func.isRequired,
+  onCloseDelete: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   index: PropTypes.number.isRequired,
   rows: PropTypes.array.isRequired,

@@ -231,7 +231,8 @@ export default function controller(instances, thisUser) {
       }
 
       if (instance > 0) {
-        ctx.response.status = 204;
+        ctx.response.body = { statusCode: 200, status: 'ok', data: instance };
+        ctx.response.status = 200;
       } else {
         log.error(
           `HTTP 404 Error: That instance with ID ${

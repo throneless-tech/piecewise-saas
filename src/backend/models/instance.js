@@ -53,10 +53,15 @@ export default class InstanceManager {
   }
 
   async delete(id) {
-    return this._db
-      .table('instances')
-      .del()
-      .where({ id: parseInt(id) });
+    try {
+      await this._db
+        .table('instances')
+        .del()
+        .where({ id: parseInt(id) });
+      return id;
+    } catch (err) {
+      throw new BadRequestError(`Failed to delete device with ID ${id}: `, err);
+    }
   }
 
   async find({
