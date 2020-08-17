@@ -74,7 +74,7 @@ function formatRole(role) {
 export default function ViewUser(props) {
   const classes = useStyles();
   const theme = useTheme();
-  const { onClose, open, rows, index, user } = props;
+  const { onClose, onCloseDelete, open, rows, index, user } = props;
   const [row, setRow] = React.useState(rows[index]);
   const [openEdit, setOpenEdit] = React.useState(false);
 
@@ -138,7 +138,31 @@ export default function ViewUser(props) {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this instance?')) {
-      return;
+      let status;
+      fetch(`api/v1/instances/${row.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => {
+          status = response.status;
+          return response.json();
+        })
+        .then(results => {
+          if (status === 200) {
+            return onCloseDelete(results.data);
+          } else {
+            const error = processError(results);
+            throw new Error(error);
+          }
+        })
+        .catch(error => {
+          console.error(error.name + ': ' + error.message);
+          alert(
+            'An error occurred. Please try again or contact an administrator.',
+          );
+        });
     } else {
       return;
     }
@@ -235,6 +259,7 @@ export default function ViewUser(props) {
 
 ViewUser.propTypes = {
   onClose: PropTypes.func.isRequired,
+  onCloseDelete: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   index: PropTypes.number.isRequired,
   rows: PropTypes.array.isRequired,

@@ -306,7 +306,7 @@ export default function controller(users, thisUser) {
       ctx.throw(400, `Failed to parse query: ${err}`);
     }
 
-    if (user.length) {
+    if (user > 0) {
       ctx.response.body = { statusCode: 200, status: 'ok', data: user };
       ctx.response.status = 200;
     } else {
