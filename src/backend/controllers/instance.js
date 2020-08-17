@@ -3,8 +3,8 @@ import Router from '@koa/router';
 import Joi from '@hapi/joi';
 import * as compose from 'docker-compose';
 import moment from 'moment';
-import { file } from 'tmp-promise';
-import fs from 'fs';
+import { dir } from 'tmp-promise';
+import { promises as fs } from 'fs';
 
 import { BadRequestError } from '../../common/errors.js';
 import {
@@ -16,7 +16,6 @@ import { getLogger } from '../log.js';
 const log = getLogger('backend:controllers:instance');
 
 const __dirname = path.resolve();
-const basePath = path;
 
 const query_schema = Joi.object({
   start: Joi.number()
@@ -49,10 +48,16 @@ export default function controller(instances, thisUser) {
 
   router.post('/instances', thisUser.can('access admin pages'), async ctx => {
     log.debug('Adding new instance.');
-    let instance;
+    let data, instance, composeOptions, cleanupCb, tmpDir;
 
     try {
-      const data = await validateCreation(ctx.request.body.data);
+      data = await validateCreation(ctx.request.body.data);
+    } catch (err) {
+      log.error('HTTP 400 Error: ', err);
+      ctx.throw(400, `Failed to parse instance schema: ${err}`);
+    }
+
+    try {
       instance = await instances.create(data);
 
       // workaround for sqlite
@@ -67,58 +72,38 @@ export default function controller(instances, thisUser) {
       `;
 
       // options for docker build
-      const composeOptions = [
-        ['--file', '../instances/docker-compose.yml'],
-        ['--project-name', `Piecewise_${instance[0].name}`],
-        '--build',
-        '--detach',
-      ];
+      composeOptions = [['--project-name', `Piecewise_${instance[0].name}`]];
 
-      const commandOptions = [
-        ['--file', '../instances/docker-compose.yml'],
-        ['--project-name', `Piecewise_${instance[0].name}`],
-        '--build',
-        '--detach',
-      ];
-
-      (async () => {
-        const { fd, path, cleanup } = await file({
-          name: '.env',
-          // postfix: '.env',
-          tmpdir: basePath.join(__dirname, './src/backend/instances'),
-        });
-        // create custom  env vars file
-        await fs.writeFile(path, contents, err => {
-          if (err) {
-            log.error('An error occurred: ', err);
-          }
-        });
-        // docker-compose up
-        await compose
-          .upAll({
-            cwd: basePath.join(__dirname, './src/backend/instances'),
-            log: true,
-            [composeOptions]: composeOptions,
-            [commandOptions]: commandOptions,
-          })
-          .then(
-            () => {
-              return;
-            },
-            err => {
-              log.error('An error occurred: ', err.message);
-            },
-          )
-          .catch(err => {
-            log.error('An error occurred: ', err);
-          });
-        cleanup();
-      })();
+      const { path: tmp, cleanup } = await dir({
+        prefix: 'piecewise-',
+        unsafeCleanup: true,
+      });
+      tmpDir = tmp;
+      cleanupCb = cleanup;
+      log.debug('Creating temporary directory: ', tmpDir);
+      // create custom  env vars file
+      await fs.writeFile(path.join(tmpDir, '.env'), contents);
+      await fs.copyFile(
+        path.join(__dirname, './src/backend/instances', 'docker-compose.yml'),
+        path.join(tmpDir, 'docker-compose.yml'),
+      );
     } catch (err) {
-      log.error('HTTP 400 Error: ', err);
-      ctx.throw(400, `Failed to parse instance schema: ${err}`);
+      log.error('HTTP 500 Error: ', err);
+      ctx.throw(500, `Failed to setup docker-compose environment: ${err}`);
     }
 
+    // docker-compose up
+    compose
+      .upAll({
+        cwd: tmpDir,
+        log: true,
+        composeOptions: composeOptions,
+      })
+      .then(() => cleanupCb())
+      .catch(err => {
+        log.error('HTTP 500 Error: ', err);
+        ctx.throw(500, `Failed to cleanly run docker-compose: ${err}`);
+      });
     ctx.response.body = { statusCode: 201, status: 'created', data: instance };
     ctx.response.status = 201;
   });

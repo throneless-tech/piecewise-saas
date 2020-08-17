@@ -8,8 +8,6 @@ services:
     networks:
       - piecewise-private
       - piecewise-public
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PIECEWISE_LOG_LEVEL: ${PIECEWISE_LOG_LEVEL:-debug}
