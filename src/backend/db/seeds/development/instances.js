@@ -6,15 +6,15 @@ export function seed(knex) {
       return knex('instances').insert([
         {
           id: 1,
-          domain: 'test1.measuringbroadband.org',
+          domain: 'piecewise1.localhost',
           secret: '1234567890',
-          redirect_uri: 'https://test1.measuringbroadband.org',
+          redirect_uri: 'http://piecewise1.localhost:3001',
         },
         {
           id: 2,
-          domain: 'test2.measuringbroadband.org',
+          domain: 'piecewise2.localhost',
           secret: '1234567890',
-          redirect_uri: 'https://test2.measuringbroadband.org',
+          redirect_uri: 'http://piecewise2.localhost:3002',
         },
       ]);
     });

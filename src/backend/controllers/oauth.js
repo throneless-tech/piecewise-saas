@@ -9,7 +9,7 @@ export default function controller(oauth) {
   const { authorization, token } = oauthWrapper({ model: oauth });
 
   // Post authorization.
-  router.post('/authorize', authorization, async ctx => {
+  router.get('/authorize', authorization, async ctx => {
     // Redirect anonymous users to login page.
     if (!ctx.isAuthenticated()) {
       return ctx.redirect('/login');
