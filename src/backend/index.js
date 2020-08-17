@@ -32,7 +32,7 @@ bootstrap()
         }
         console.log(`
 ${bigName}
-🚀 Server listening on port !`);
+🚀 Server listening on port ${server.address().port}!`);
         return;
       },
     );

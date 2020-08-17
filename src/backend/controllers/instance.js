@@ -4,6 +4,7 @@ import Joi from '@hapi/joi';
 import * as compose from 'docker-compose';
 import moment from 'moment';
 import { file } from 'tmp-promise';
+import fs from 'fs';
 
 import { BadRequestError } from '../../common/errors.js';
 import {
@@ -15,6 +16,7 @@ import { getLogger } from '../log.js';
 const log = getLogger('backend:controllers:instance');
 
 const __dirname = path.resolve();
+const basePath = path;
 
 const query_schema = Joi.object({
   start: Joi.number()
@@ -58,18 +60,14 @@ export default function controller(instances, thisUser) {
         instance = await instances.findById(instance[0]);
       }
 
-      (async () => {
-        const { fd, path, cleanup } = await file({
-          postfix: '.env',
-        });
-        console.log('***************************');
-        console.log('fd: ', fd);
-        console.log('path: ', path);
-        console.log('cleanup: ', cleanup);
-        console.log('***************************');
-        // cleanup();
-      })();
+      // create custom variables for env file
+      const contents = `
+      PIECEWISE_SAAS_CONTAINER_NAME=${data.id}
+      PIECEWISE_SAAS_DB_CONTAINER_NAME=${data.id}-db
+      PIECEWISE_SAAS_DB_DATA_CONTAINER_NAME=${data.id}-db-data
+      `;
 
+      // options for docker build
       const options = [
         ['--file', '../instances/docker-compose.yml'],
         ['--project-name', `Piecewise_${data.id}`],
@@ -77,29 +75,45 @@ export default function controller(instances, thisUser) {
         '--detach',
       ];
 
-      compose
-        .upAll({
-          cwd: path.join(__dirname),
-          log: true,
-          options,
-        })
-        .then(
-          res => {
-            console.log('************************');
-            console.log('res: ', res);
-            console.log('************************');
-            return;
-          },
-          err => {
+      (async () => {
+        const { fd, path, cleanup } = await file({
+          postfix: '.env',
+        });
+        // create custom  env vars file
+        fs.writeFile(path, contents, err => {
+          if (err) {
             console.log('************************');
             console.log('err: ', err);
             console.log('************************');
-            log.error('An error occurred: ', err.message);
-          },
-        )
-        .catch(err => {
-          log.error('An error occurred: ', err);
+            return;
+          }
         });
+        // docker-compose up
+        compose
+          .upAll({
+            cwd: basePath.join(__dirname),
+            log: true,
+            options,
+          })
+          .then(
+            res => {
+              console.log('************************');
+              console.log('res: ', res);
+              console.log('************************');
+              return;
+            },
+            err => {
+              console.log('************************');
+              console.log('err: ', err);
+              console.log('************************');
+              log.error('An error occurred: ', err.message);
+            },
+          )
+          .catch(err => {
+            log.error('An error occurred: ', err);
+          });
+        cleanup();
+      })();
     } catch (err) {
       log.error('HTTP 400 Error: ', err);
       ctx.throw(400, `Failed to parse instance schema: ${err}`);
@@ -162,6 +176,22 @@ export default function controller(instances, thisUser) {
 
       try {
         instance = await instances.findById(ctx.params.id);
+
+        // TODO: Delete docker containers related to instance
+        // compose
+        //   .stopOne(ctx.params.id)
+        //   .then(
+        //     res => {
+        //       log.debug('Response: ', res);
+        //       return;
+        //     },
+        //     err => {
+        //       log.error('An error occurred: ', err.message);
+        //     },
+        //   )
+        //   .catch(err => {
+        //     log.error('An error occurred: ', err);
+        //   });
       } catch (err) {
         log.error('HTTP 400 Error: ', err);
         ctx.throw(400, `Failed to parse query: ${err}`);

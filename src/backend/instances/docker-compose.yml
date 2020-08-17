@@ -2,7 +2,7 @@ version: "3"
 services:
   piecewise:
     image: test:latest
-    # container_name: ${PIECEWISE_SAAS_CONTAINER_NAME}
+    container_name: ${PIECEWISE_SAAS_CONTAINER_NAME}
     depends_on:
       - piecewise-db
     networks:
@@ -21,7 +21,7 @@ services:
       PIECEWISE_SAAS_DB_DATABASE: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise}
 
   piecewise-db:
-    # container_name: ${PIECEWISE_SAAS_DB_CONTAINER_NAME}
+    container_name: ${PIECEWISE_SAAS_DB_CONTAINER_NAME}
     image: postgres:12-alpine
     volumes:
       - piecewise-db_data:/var/lib/postgresql/data
@@ -35,7 +35,7 @@ services:
 
 volumes:
   piecewise-db_data: {}
-    # container_name: ${PIECEWISE_SAAS_DB_DATA_CONTAINER_NAME}
+    container_name: ${PIECEWISE_SAAS_DB_DATA_CONTAINER_NAME}
 
 networks:
   piecewise-private:
