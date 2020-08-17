@@ -2,7 +2,7 @@ version: "3"
 services:
   piecewise:
     image: test:latest
-    container_name: ${PIECEWISE_SAAS_CONTAINER_NAME}
+    container_name: ${PIECEWISE_CONTAINER_NAME}
     depends_on:
       - piecewise-db
     networks:
@@ -12,16 +12,16 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      PIECEWISE_SAAS_LOG_LEVEL: ${PIECEWISE_SAAS_LOG_LEVEL:-debug}
-      PIECEWISE_SAAS_HOST: ${PIECEWISE_SAAS_HOST:-0.0.0.0}
-      PIECEWISE_SAAS_PORT: ${PIECEWISE_SAAS_PORT:-3000}
-      PIECEWISE_SAAS_DB_HOST: ${PIECEWISE_SAAS_DB_USER:-piecewise-db}
-      PIECEWISE_SAAS_DB_USER: ${PIECEWISE_SAAS_DB_USER:-piecewise}
-      PIECEWISE_SAAS_DB_PASSWORD: ${PIECEWISE_SAAS_DB_PASSWORD:-piecewise}
-      PIECEWISE_SAAS_DB_DATABASE: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise}
+      PIECEWISE_LOG_LEVEL: ${PIECEWISE_LOG_LEVEL:-debug}
+      PIECEWISE_HOST: ${PIECEWISE_HOST:-0.0.0.0}
+      PIECEWISE_PORT: ${PIECEWISE_PORT:-3000}
+      PIECEWISE_DB_HOST: ${PIECEWISE_DB_USER:-piecewise-db}
+      PIECEWISE_DB_USER: ${PIECEWISE_DB_USER:-piecewise}
+      PIECEWISE_DB_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
+      PIECEWISE_DB_DATABASE: ${PIECEWISE_DB_DATABASE:-piecewise}
 
   piecewise-db:
-    container_name: ${PIECEWISE_SAAS_DB_CONTAINER_NAME}
+    container_name: ${PIECEWISE_DB_CONTAINER_NAME}
     image: postgres:12-alpine
     volumes:
       - piecewise-db_data:/var/lib/postgresql/data
@@ -29,13 +29,12 @@ services:
       - piecewise-private
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
-      POSTGRES_USER: ${PIECEWISE_SAAS_DB_USER:-piecewise}
-      POSTGRES_PASSWORD: ${PIECEWISE_SAAS_DB_PASSWORD:-piecewise}
-      POSTGRES_DB: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise}
+      POSTGRES_USER: ${PIECEWISE_DB_USER:-piecewise}
+      POSTGRES_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
+      POSTGRES_DB: ${PIECEWISE_DB_DATABASE:-piecewise}
 
 volumes:
   piecewise-db_data: {}
-    container_name: ${PIECEWISE_SAAS_DB_DATA_CONTAINER_NAME}
 
 networks:
   piecewise-private:

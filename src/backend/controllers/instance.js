@@ -62,50 +62,50 @@ export default function controller(instances, thisUser) {
 
       // create custom variables for env file
       const contents = `
-      PIECEWISE_SAAS_CONTAINER_NAME=${data.id}
-      PIECEWISE_SAAS_DB_CONTAINER_NAME=${data.id}-db
-      PIECEWISE_SAAS_DB_DATA_CONTAINER_NAME=${data.id}-db-data
+      PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
+      PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
       `;
 
       // options for docker build
-      const options = [
+      const composeOptions = [
         ['--file', '../instances/docker-compose.yml'],
-        ['--project-name', `Piecewise_${data.id}`],
+        ['--project-name', `Piecewise_${instance[0].name}`],
+        '--build',
+        '--detach',
+      ];
+
+      const commandOptions = [
+        ['--file', '../instances/docker-compose.yml'],
+        ['--project-name', `Piecewise_${instance[0].name}`],
         '--build',
         '--detach',
       ];
 
       (async () => {
         const { fd, path, cleanup } = await file({
-          postfix: '.env',
+          name: '.env',
+          // postfix: '.env',
+          tmpdir: basePath.join(__dirname, './src/backend/instances'),
         });
         // create custom  env vars file
-        fs.writeFile(path, contents, err => {
+        await fs.writeFile(path, contents, err => {
           if (err) {
-            console.log('************************');
-            console.log('err: ', err);
-            console.log('************************');
-            return;
+            log.error('An error occurred: ', err);
           }
         });
         // docker-compose up
-        compose
+        await compose
           .upAll({
-            cwd: basePath.join(__dirname),
+            cwd: basePath.join(__dirname, './src/backend/instances'),
             log: true,
-            options,
+            [composeOptions]: composeOptions,
+            [commandOptions]: commandOptions,
           })
           .then(
-            res => {
-              console.log('************************');
-              console.log('res: ', res);
-              console.log('************************');
+            () => {
               return;
             },
             err => {
-              console.log('************************');
-              console.log('err: ', err);
-              console.log('************************');
               log.error('An error occurred: ', err.message);
             },
           )
