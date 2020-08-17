@@ -135,7 +135,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 const EnhancedTableToolbar = props => {
   const classes = useToolbarStyles();
-  const { userRole, updateRows, user, instance } = props;
+  const { userRole, updateRows, user, library } = props;
 
   // handle add user
   const [open, setOpen] = React.useState(false);
@@ -174,7 +174,7 @@ const EnhancedTableToolbar = props => {
               open={open}
               onClose={handleClose}
               user={user}
-              instance={instance}
+              library={library}
             />
           </Grid>
         </Grid>
@@ -214,7 +214,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function EnhancedTable(props) {
   const classes = useStyles();
-  const { user, instance } = props;
+  const { user, library } = props;
 
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('date');
@@ -276,8 +276,15 @@ export default function EnhancedTable(props) {
 
   React.useEffect(() => {
     let status;
+    let url;
 
-    fetch('/api/v1/users')
+    if (library && library.id) {
+      url = `/api/v1/libraries/${library.id}/users`;
+    } else {
+      url = '/api/v1/users';
+    }
+
+    fetch(url)
       .then(res => {
         status = res.status;
         return res.json();
@@ -314,7 +321,7 @@ export default function EnhancedTable(props) {
             userRole={user.role_name}
             updateRows={addData}
             user={user}
-            instance={instance}
+            library={library}
           />
           <TableContainer>
             <Table

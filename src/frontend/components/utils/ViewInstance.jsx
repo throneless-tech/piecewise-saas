@@ -13,6 +13,7 @@ import MobileStepper from '@material-ui/core/MobileStepper';
 import Typography from '@material-ui/core/Typography';
 
 // icons imports
+import DeleteIcon from '@material-ui/icons/Delete';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
@@ -40,14 +41,14 @@ const useStyles = makeStyles(() => ({
     position: 'relative',
   },
   dialogTitleRoot: {
-    marginTop: '30px',
+    // marginTop: '30px',
   },
   dialogTitleText: {
     fontSize: '2.25rem',
-    textAlign: 'center',
+    textAlign: 'right',
   },
   editButton: {
-    marginTop: '30px',
+    margin: '15px',
   },
   form: {
     padding: '50px',
@@ -96,19 +97,80 @@ export default function ViewInstance(props) {
       return null;
     } else {
       return (
-        <Grid item xs={12} sm={5}>
-          <Button
-            variant="contained"
-            disableElevation
-            color="primary"
-            onClick={handleClickOpenEdit}
-            className={classes.editButton}
-          >
-            Edit
-          </Button>
-          <EditInstance row={row} open={openEdit} onClose={handleCloseEdit} />
+        <Grid container item xs={12} sm={4} justify="flex-start">
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
+              onClick={handleClickOpenEdit}
+              className={classes.editButton}
+            >
+              Edit
+            </Button>
+            <EditInstance row={row} open={openEdit} onClose={handleCloseEdit} />
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
+              onClick={() => handleDelete(row)}
+              className={classes.editButton}
+            >
+              <DeleteIcon />
+            </Button>
+          </Grid>
         </Grid>
       );
+    }
+  };
+
+  const processError = res => {
+    let errorString;
+    if (res.statusCode && res.error && res.message) {
+      errorString = `HTTP ${res.statusCode} ${res.error}: ${res.message}`;
+    } else if (res.statusCode && res.status) {
+      errorString = `HTTP ${res.statusCode}: ${res.status}`;
+    } else {
+      errorString = 'Error in response from server.';
+    }
+    return errorString;
+  };
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this instance?')) {
+      let status;
+      fetch(`api/v1/instances/${row.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => {
+          status = response.status;
+          return response.json();
+        })
+        .then(results => {
+          if (status === 204) {
+            let updatedRows = rows.filter(
+              filteredRow => filteredRow.id !== row.id,
+            );
+            setRows(updatedRows);
+            return;
+          } else {
+            const error = processError(results);
+            throw new Error(error);
+          }
+        })
+        .catch(error => {
+          console.error(error.name + ': ' + error.message);
+          alert(
+            'An error occurred. Please try again or contact an administrator.',
+          );
+        });
+    } else {
+      return;
     }
   };
 
@@ -117,7 +179,6 @@ export default function ViewInstance(props) {
   };
 
   const handleCloseEdit = rowChanges => {
-    console.log('new row: ', rowChanges);
     if (rowChanges) {
       const newRow = { ...row, ...rowChanges };
       setRow(newRow);
@@ -165,8 +226,8 @@ export default function ViewInstance(props) {
           </Button>
         }
       />
-      <Grid container justify="center" alignItems="center">
-        <Grid item xs={12} sm={7}>
+      <Grid container alignItems="center" justify="flex-end">
+        <Grid item xs={12} sm={8}>
           <DialogTitle
             id="view-instance-title"
             className={classes.dialogTitleRoot}

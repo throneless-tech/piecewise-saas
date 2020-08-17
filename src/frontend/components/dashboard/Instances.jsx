@@ -224,7 +224,7 @@ export default function EnhancedTable(props) {
   const [open, setOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
 
-  const handleClickOpen = id => {
+  const handleClickOpen = index => {
     setIndex(index);
     setOpen(true);
   };
