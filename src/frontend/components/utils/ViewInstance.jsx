@@ -18,7 +18,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
 // modules imports
-import EditUser from '../utils/EditUser.jsx';
+import EditInstance from '../utils/EditInstance.jsx';
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -61,17 +61,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function formatName(first, last) {
-  return `${first} ${last}`;
-}
-
-function formatRole(role) {
-  if (typeof role === 'string' || role instanceof String) {
-    return role.charAt(0).toUpperCase() + role.slice(1);
-  }
-}
-
-export default function ViewUser(props) {
+export default function ViewInstance(props) {
   const classes = useStyles();
   const theme = useTheme();
   const { onClose, onCloseDelete, open, rows, index, user } = props;
@@ -101,7 +91,7 @@ export default function ViewUser(props) {
     onClose(row, index);
   };
 
-  // handle edit user
+  // handle edit instance
   const isAdmin = user => {
     if (user.role_name != 'admins') {
       return null;
@@ -118,7 +108,7 @@ export default function ViewUser(props) {
             >
               Edit
             </Button>
-            <EditUser row={row} open={openEdit} onClose={handleCloseEdit} />
+            <EditInstance row={row} open={openEdit} onClose={handleCloseEdit} />
           </Grid>
           <Grid item>
             <Button
@@ -134,6 +124,18 @@ export default function ViewUser(props) {
         </Grid>
       );
     }
+  };
+
+  const processError = res => {
+    let errorString;
+    if (res.statusCode && res.error && res.message) {
+      errorString = `HTTP ${res.statusCode} ${res.error}: ${res.message}`;
+    } else if (res.statusCode && res.status) {
+      errorString = `HTTP ${res.statusCode}: ${res.status}`;
+    } else {
+      errorString = 'Error in response from server.';
+    }
+    return errorString;
   };
 
   const handleDelete = () => {
@@ -173,8 +175,8 @@ export default function ViewUser(props) {
   };
 
   const handleCloseEdit = rowChanges => {
-    const newRow = { ...row, ...rowChanges };
     if (rowChanges) {
+      const newRow = { ...row, ...rowChanges };
       setRow(newRow);
     }
     setOpenEdit(false);
@@ -185,7 +187,7 @@ export default function ViewUser(props) {
       onClose={() => handleClose(row, activeStep)}
       modal="true"
       open={open}
-      aria-labelledby="view-user-title"
+      aria-labelledby="view-instance-title"
       fullWidth={true}
       maxWidth={'md'}
       className={classes.dialog}
@@ -220,26 +222,23 @@ export default function ViewUser(props) {
           </Button>
         }
       />
-      <Grid container justify="center" alignItems="center">
-        <Grid item xs={12} sm={7}>
-          <DialogTitle id="view-user-title" className={classes.dialogTitleRoot}>
-            <div className={classes.dialogTitleText}>View User</div>
+      <Grid container alignItems="center" justify="flex-end">
+        <Grid item xs={12} sm={8}>
+          <DialogTitle
+            id="view-instance-title"
+            className={classes.dialogTitleRoot}
+          >
+            <div className={classes.dialogTitleText}>View Instance</div>
           </DialogTitle>
         </Grid>
         {isAdmin(user)}
       </Grid>
       <Box className={classes.box}>
         <Typography component="p" variant="subtitle2" gutterBottom>
-          {formatName(row.firstName, row.lastName)}
+          Name: {row.name}
         </Typography>
         <Typography component="p" variant="body2" gutterBottom>
-          {row.email}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          {row.instance_name}
-        </Typography>
-        <Typography component="p" variant="body2" gutterBottom>
-          {formatRole(row.role_name)}
+          Domain: {row.domain}
         </Typography>
       </Box>
       <Button
@@ -257,7 +256,7 @@ export default function ViewUser(props) {
   );
 }
 
-ViewUser.propTypes = {
+ViewInstance.propTypes = {
   onClose: PropTypes.func.isRequired,
   onCloseDelete: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,

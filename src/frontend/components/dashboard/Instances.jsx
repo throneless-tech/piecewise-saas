@@ -3,7 +3,7 @@ import React, { Suspense } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
-import { useHistory } from 'react-router-dom';
+// import { useHistory } from 'react-router-dom';
 
 // material ui imports
 import Button from '@material-ui/core/Button';
@@ -22,7 +22,7 @@ import Typography from '@material-ui/core/Typography';
 // modules imports
 import AddInstance from '../utils/AddInstance.jsx';
 import Loading from '../Loading.jsx';
-// import ViewUser from '../utils/ViewUser.jsx';
+import ViewInstance from '../utils/ViewInstance.jsx';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -51,15 +51,19 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'name', numeric: false, disablePadding: true, label: 'mame' },
+  // { id: 'id', numeric: true, disablePadding: true, label: 'ID' },
   {
-    id: 'location',
+    id: 'name',
+    numeric: false,
+    disablePadding: true,
+    label: 'Name',
+  },
+  {
+    id: 'domain',
     numeric: false,
     disablePadding: false,
-    label: 'Location',
+    label: 'Domain',
   },
-  // { id: 'users', numeric: false, disablePadding: false, label: 'Users' },
-  // { id: 'devices', numeric: false, disablePadding: false, label: 'Devices' },
 ];
 
 function EnhancedTableHead(props) {
@@ -82,6 +86,7 @@ function EnhancedTableHead(props) {
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
             >
+              {headCell.label}
               {orderBy === headCell.id ? (
                 <span className={classes.visuallyHidden}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
@@ -125,7 +130,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 const EnhancedTableToolbar = props => {
   const classes = useToolbarStyles();
-  const { updateRows } = props;
+  const { updateRows, instance } = props;
 
   // handle add instance
   const [open, setOpen] = React.useState(false);
@@ -168,6 +173,7 @@ const EnhancedTableToolbar = props => {
 
 EnhancedTableToolbar.propTypes = {
   updateRows: PropTypes.func.isRequired,
+  instance: PropTypes.object,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -192,9 +198,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function EnhancedTable(props) {
-  const history = useHistory();
+  // const history = useHistory();
   const classes = useStyles();
-  const { instance } = props;
+  const { user, instance } = props;
 
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('date');
@@ -214,15 +220,30 @@ export default function EnhancedTable(props) {
 
   let emptyRows;
 
-  // handle view user
+  // handle view instance
   const [open, setOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
 
-  const handleClickOpen = id => {
-    history.push({
-      pathname: '/dashboard',
-      state: { instance: id },
-    });
+  const handleClickOpen = index => {
+    setIndex(index);
+    setOpen(true);
+  };
+
+  const handleClose = (instance, index) => {
+    if (instance) {
+      let editedInstances = [...rows];
+      editedInstances[index] = instance;
+      setRows(editedInstances);
+    }
+    setOpen(false);
+  };
+
+  const handleCloseDelete = instanceToDeleteId => {
+    let editedInstances = rows.filter(
+      instance => instance.id !== Number(instanceToDeleteId),
+    );
+    setRows(editedInstances);
+    setOpen(false);
   };
 
   const addData = row => {
@@ -234,7 +255,7 @@ export default function EnhancedTable(props) {
   const [error, setError] = React.useState(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [rows, setRows] = React.useState([]);
-  const [users, setUsers] = React.useState([]);
+  // const [users, setUsers] = React.useState([]);
 
   const processError = res => {
     let errorString;
@@ -249,7 +270,7 @@ export default function EnhancedTable(props) {
   };
 
   React.useEffect(() => {
-    let status, userStatus;
+    let status;
 
     fetch('/api/v1/instances')
       .then(res => {
@@ -262,25 +283,11 @@ export default function EnhancedTable(props) {
           emptyRows =
             rowsPerPage -
             Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+          setIsLoaded(true);
           return;
         } else {
           processError(instances);
           throw new Error(`Error in response from server.`);
-        }
-      })
-      .then(() => fetch('api/v1/users'))
-      .then(usersResponse => {
-        userStatus = usersResponse.status;
-        return usersResponse.json();
-      })
-      .then(users => {
-        if (userStatus === 200) {
-          setUsers(users.data);
-          setIsLoaded(true);
-          return;
-        } else {
-          const error = processError(users);
-          throw new Error(error);
         }
       })
       .catch(error => {
@@ -298,7 +305,7 @@ export default function EnhancedTable(props) {
     return (
       <Suspense fallback={<Loading />}>
         <div className={classes.root}>
-          <EnhancedTableToolbar updateRows={addData} />
+          <EnhancedTableToolbar updateRows={addData} instance={instance} />
           <TableContainer>
             <Table
               className={classes.table}
@@ -318,12 +325,12 @@ export default function EnhancedTable(props) {
                   .map((row, index) => {
                     const labelId = `data-row-${index}`;
 
-                    if (row) {
+                    if (row && row.id) {
                       return (
                         <TableRow
                           hover
                           onClick={() => {
-                            handleClickOpen(row.id);
+                            handleClickOpen(index);
                           }}
                           key={row.id}
                         >
@@ -335,7 +342,7 @@ export default function EnhancedTable(props) {
                           >
                             {row.name}
                           </TableCell>
-                          <TableCell>{row.physical_address}</TableCell>
+                          <TableCell>{row.domain}</TableCell>
                         </TableRow>
                       );
                     }
@@ -356,6 +363,16 @@ export default function EnhancedTable(props) {
             page={page}
             onChangePage={handleChangePage}
           />
+          {rows.length > 0 && (
+            <ViewInstance
+              index={index + page * rowsPerPage}
+              rows={stableSort(rows, getComparator(order, orderBy))}
+              open={open}
+              onClose={handleClose}
+              onCloseDelete={handleCloseDelete}
+              user={user}
+            />
+          )}
         </div>
       </Suspense>
     );

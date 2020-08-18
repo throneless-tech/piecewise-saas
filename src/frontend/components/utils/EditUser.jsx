@@ -84,8 +84,8 @@ export default function EditUser(props) {
   const [groups, setGroups] = React.useState([]);
   const [role, setRole] = React.useState(row.role);
   const [roleName, setRoleName] = React.useState(row.role_name);
-  const [location, setLocation] = React.useState(row.location);
-  const [locationName, setLocationName] = React.useState(row.location_name);
+  const [instance, setInstance] = React.useState(row.instance);
+  const [instanceName, setInstanceName] = React.useState(row.instance_name);
 
   const handleClose = () => {
     onClose(row);
@@ -96,15 +96,15 @@ export default function EditUser(props) {
     setRoleName(values.name);
   };
 
-  const handleLocationChange = (event, values) => {
-    setLocation(values.id);
-    setLocationName(values.name);
+  const handleInstanceChange = (event, values) => {
+    setInstance(values.id);
+    setInstanceName(values.name);
   };
 
   const submitData = () => {
     const toSubmit = {
       ...inputs,
-      location: location,
+      instance: instance,
       role: role,
     };
 
@@ -125,13 +125,13 @@ export default function EditUser(props) {
           alert(`User edited successfully.`);
           onClose({
             ...toSubmit,
-            location_name: locationName,
+            instance_name: instanceName,
             role_name: roleName,
           });
           return;
         } else {
           processError(results);
-          throw new Error(`Error in response from server.`);
+          throw new Error(`Error in response from server: ${results.message}`);
         }
       })
       .catch(error => {
@@ -205,7 +205,7 @@ export default function EditUser(props) {
     return (
       <Dialog
         onClose={handleClose}
-        modal={true}
+        modal="true"
         open={open}
         aria-labelledby="edit-user-title"
         fullWidth={true}
@@ -214,7 +214,7 @@ export default function EditUser(props) {
       >
         <Button
           label="Close"
-          primary={true}
+          primary="true"
           onClick={handleClose}
           className={classes.closeButton}
         >
@@ -277,11 +277,11 @@ export default function EditUser(props) {
               getOptionLabel={option => option.name}
               getOptionSelected={(option, value) => option.name === value}
               defaultValue={instances.find(
-                instance => instance.id === row.location,
+                instance => instance.id === row.instance,
               )}
-              onChange={handleLocationChange}
+              onChange={handleInstanceChange}
               renderInput={params => (
-                <TextField {...params} label="Location" variant="outlined" />
+                <TextField {...params} label="Instance" variant="outlined" />
               )}
             />
           </FormControl>
@@ -303,7 +303,7 @@ export default function EditUser(props) {
               <Button
                 size="small"
                 label="Cancel"
-                primary={true}
+                primary="true"
                 onClick={handleClose}
                 className={classes.cancelButton}
               >
@@ -319,7 +319,7 @@ export default function EditUser(props) {
                 variant="contained"
                 disableElevation
                 color="primary"
-                primary={true}
+                primary="true"
               >
                 Save
               </Button>

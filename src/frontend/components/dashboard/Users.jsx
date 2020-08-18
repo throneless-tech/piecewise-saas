@@ -252,6 +252,14 @@ export default function EnhancedTable(props) {
     setOpen(false);
   };
 
+  const handleCloseDelete = instanceToDeleteId => {
+    let editedInstances = rows.filter(
+      instance => instance.id !== Number(instanceToDeleteId),
+    );
+    setRows(editedInstances);
+    setOpen(false);
+  };
+
   const addData = row => {
     const newRow = [...rows, row];
     setRows(newRow);
@@ -396,6 +404,7 @@ export default function EnhancedTable(props) {
               rows={stableSort(rows, getComparator(order, orderBy))}
               open={open}
               onClose={handleClose}
+              onCloseDelete={handleCloseDelete}
               user={user}
             />
           )}

@@ -5,18 +5,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import _ from 'lodash/core';
 
 // material ui imports
-import AppBar from '@material-ui/core/AppBar';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
@@ -75,39 +68,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `edit-instance-tab-${index}`,
-    'aria-controls': `edit-instance-tabpanel-${index}`,
-  };
-}
-
 const useForm = (callback, validated) => {
   const [inputs, setInputs] = useState({});
   const handleSubmit = event => {
@@ -141,34 +101,33 @@ export default function EditInstance(props) {
   });
 
   // handle form validation
-  const validateInputs = (row, inputs) => {
-    console.log(row);
-    console.log(inputs);
+  const validateInputs = inputs => {
     setErrors({});
     setHelperText({});
     if (_.isEmpty(inputs)) {
       onClose();
       return false;
-    } else {
-      if (!inputs.name || !inputs.primary_contact_email) {
-        if (!inputs.name) {
+    }
+    if (!row.name || !row.domain) {
+      if (!inputs.name || !inputs.domain) {
+        if (!inputs.name && !row.name) {
+          console.log('no domain');
           setErrors(errors => ({
             ...errors,
             name: true,
           }));
           setHelperText(helperText => ({
             ...helperText,
-            name: 'Required',
+            name: 'This field is required.',
           }));
-        }
-        if (!validateEmail(inputs.primary_contact_email)) {
+        } else if (!inputs.domain && !row.domain) {
           setErrors(errors => ({
             ...errors,
-            email: true,
+            domain: true,
           }));
           setHelperText(helperText => ({
             ...helperText,
-            email: 'Please enter a valid email address.',
+            domain: 'This field is required.',
           }));
         }
         return false;
@@ -176,18 +135,7 @@ export default function EditInstance(props) {
         return true;
       }
     }
-  };
-
-  const validateEmail = email => {
-    const re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-    return re.test(String(email).toLowerCase());
-  };
-
-  // handle tabs
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+    return true;
   };
 
   // handle close
@@ -196,17 +144,28 @@ export default function EditInstance(props) {
   };
 
   const submitData = () => {
+    const toSubmit = {
+      name: inputs.name ? inputs.name : row.name,
+      domain: inputs.domain ? inputs.domain : row.domain,
+    };
+    let status;
     fetch(`api/v1/instances/${row.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data: inputs }),
+      body: JSON.stringify({ data: toSubmit }),
     })
-      .then(response => response.json())
+      .then(response => {
+        status = response.status;
+        return response.json();
+      })
       .then(results => {
-        onClose(results.data[0]);
-        alert('Instance edited successfully.');
+        if (status === 200 || status === 201 || status === 204) {
+          console.log('results: ', results);
+          onClose(results.data[0]);
+          alert('Instance edited successfully.');
+        }
         return;
       })
       .catch(error => {
@@ -215,7 +174,6 @@ export default function EditInstance(props) {
           'An error occurred. Please try again or contact an administrator.',
         );
       });
-
     onClose();
   };
 
@@ -229,7 +187,7 @@ export default function EditInstance(props) {
   return (
     <Dialog
       onClose={handleClose}
-      modal={true}
+      modal="true"
       open={open}
       aria-labelledby="add-instance-title"
       fullWidth={true}
@@ -238,7 +196,7 @@ export default function EditInstance(props) {
     >
       <Button
         label="Close"
-        primary={true}
+        primary="true"
         onClick={handleClose}
         className={classes.closeButton}
       >
@@ -267,7 +225,7 @@ export default function EditInstance(props) {
             variant="contained"
             disableElevation
             color="primary"
-            primary={true}
+            primary="true"
           >
             Save
           </Button>
@@ -276,7 +234,7 @@ export default function EditInstance(props) {
           <Button
             size="small"
             label="Cancel"
-            primary={true}
+            primary="true"
             onClick={handleClose}
             className={classes.cancelButton}
           >
@@ -285,236 +243,31 @@ export default function EditInstance(props) {
         </Grid>
       </Grid>
       <Box m={4}>
-        <AppBar position="static" className={classes.appBar}>
-          <Tabs
-            indicatorColor="primary"
-            textColor="primary"
-            value={value}
-            onChange={handleChange}
-            aria-label="edit instance tabs"
-          >
-            <Tab label="Basic info" {...a11yProps(0)} />
-            <Tab label="Network" {...a11yProps(1)} />
-          </Tabs>
-        </AppBar>
-        <TabPanel value={value} index={0}>
-          <Typography variant="overline" display="block" gutterBottom>
-            Instance Details
-          </Typography>
-          <FormControl variant="outlined" className={classes.formControl}>
-            <InputLabel id="instance-system-name">
-              Instance System Name (if applicable)
-            </InputLabel>
-            <Select
-              labelId="instance-system-name"
-              className={classes.formField}
-              id="instance-name"
-              label="Instance System Name (if applicable)"
-              name="instance_name"
-              defaultValue=""
-              // onChange={handleInputChange}
-              value={0}
-              disabled
-            >
-              <MenuItem value="" selected />
-            </Select>
-          </FormControl>
-          <TextField
-            error={errors && errors.name}
-            helperText={helperText.name}
-            className={classes.formField}
-            id="instance-name"
-            label="Instance Name"
-            name="name"
-            fullWidth
-            variant="outlined"
-            defaultValue={row.name}
-            onChange={handleInputChange}
-            value={inputs.name}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-physical-address"
-            label="Physical Address"
-            name="physical_address"
-            fullWidth
-            variant="outlined"
-            defaultValue={row.physical_address}
-            onChange={handleInputChange}
-            value={inputs.physical_address}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-shipping-address"
-            label="Shipping Address"
-            name="shipping_address"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.shipping_address}
-            value={inputs.shipping_address}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-timezone"
-            label="Timezone"
-            name="timezone"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.timezone}
-            value={inputs.timezone}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-coordinates"
-            label="Coordinates"
-            name="coordinates"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.coordinates}
-            value={inputs.coordinates}
-          />
-          <Typography variant="overline" display="block" gutterBottom>
-            Primary Instance Contact
-          </Typography>
-          <TextField
-            className={classes.formField}
-            id="instance-primary-contact-name"
-            label="Name"
-            name="primary_contact_name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.primary_contact_name}
-            value={inputs.primary_contact_name}
-          />
-          <TextField
-            error={errors.email}
-            helperText={helperText.email}
-            className={classes.formField}
-            id="instance-primary-contact-email"
-            label="Email"
-            name="primary_contact_email"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.primary_contact_email}
-            value={inputs.primary_contact_email}
-          />
-          <Typography variant="overline" display="block" gutterBottom>
-            Instance Hours
-          </Typography>
-          <TextField
-            className={classes.formField}
-            id="instance-opening-hours"
-            label="Opening hours"
-            name="opening_hours"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.opening_hours}
-            value={inputs.opening_hours}
-          />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <TextField
-            className={classes.formField}
-            id="instance-network-name"
-            label="Network name"
-            name="network_name"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.network_name}
-            value={inputs.network_name}
-          />
-          <TextField
-            className={classes.formField}
-            id="instance-isp"
-            label="ISP (company)"
-            name="isp"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.isp}
-            value={inputs.isp}
-          />
-          <Grid container alignItems="center">
-            <Grid item>
-              <Typography variant="body2" display="block">
-                Contracted Speed
-              </Typography>
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-contracted-speed-download"
-                label="Download"
-                name="contracted_speed_download"
-                variant="outlined"
-                onChange={handleInputChange}
-                defaultValue={row.contracted_speed_download}
-                value={inputs.contracted_speed_download}
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-contracted-speed-upload"
-                label="Upload"
-                name="contracted_speed_upload"
-                variant="outlined"
-                onChange={handleInputChange}
-                defaultValue={row.contracted_speed_upload}
-                value={inputs.contracted_speed_upload}
-              />
-            </Grid>
-          </Grid>
-          <TextField
-            className={classes.formField}
-            id="instance-ip"
-            label="IP address of custom DNS server (if applicable)"
-            name="ip"
-            fullWidth
-            variant="outlined"
-            onChange={handleInputChange}
-            defaultValue={row.ip}
-            value={inputs.ip}
-          />
-          <Grid container alignItems="center">
-            <Grid item>
-              <Typography variant="body2" display="block">
-                Per device bandwidth caps
-              </Typography>
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-bandwidth-cap-download"
-                label="Download"
-                name="bandwidth_cap_download"
-                variant="outlined"
-                onChange={handleInputChange}
-                defaultValue={row.bandwidth_cap_download}
-                value={inputs.bandwidth_cap_download}
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                className={`${classes.formField} ${classes.inline}`}
-                id="instance-bandwidth-cap-upload"
-                label="Upload"
-                name="bandwidth_cap_upload"
-                variant="outlined"
-                onChange={handleInputChange}
-                defaultValue={row.bandwidth_cap_upload}
-                value={inputs.bandwidth_cap_upload}
-              />
-            </Grid>
-          </Grid>
-        </TabPanel>
+        <TextField
+          error={errors && errors.name}
+          helperText={helperText.name}
+          className={classes.formField}
+          id="instance-name"
+          label="Instance Name"
+          name="name"
+          fullWidth
+          variant="outlined"
+          defaultValue={row.name}
+          onChange={handleInputChange}
+          value={inputs.name}
+        />
+        <TextField
+          error={errors && errors.domain}
+          className={classes.formField}
+          id="instance-domain"
+          label="Domain"
+          name="domain"
+          fullWidth
+          variant="outlined"
+          defaultValue={row.domain}
+          onChange={handleInputChange}
+          value={inputs.domain}
+        />
         <div className={classes.saveButtonContainer}>
           <Button
             type="submit"
@@ -524,7 +277,7 @@ export default function EditInstance(props) {
             variant="contained"
             disableElevation
             color="primary"
-            primary={true}
+            primary="true"
           >
             Save
           </Button>

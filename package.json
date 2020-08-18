@@ -112,6 +112,7 @@
     "clsx": "^1.1.1",
     "commander": "^4.1.1",
     "date-fns": "^2.12.0",
+    "docker-compose": "^0.23.5",
     "dotenv": "8.0.0",
     "figlet": "^1.2.4",
     "html-react-parser": "^0.13.0",
@@ -168,6 +169,7 @@
     "react-truncate": "^2.4.0",
     "request-promise-native": "^1.0.8",
     "sqlite3": "^4.1.1",
+    "tmp-promise": "^3.0.2",
     "uuid": "3.3.2"
   },
   "babel": {

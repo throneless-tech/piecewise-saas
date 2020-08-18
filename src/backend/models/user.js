@@ -21,9 +21,9 @@ export default class User {
     try {
       await validate(user);
       return this._db.transaction(async trx => {
-        const location = user.location;
+        const instance = user.instance;
         const role = user.role;
-        delete user.location;
+        delete user.instance;
         delete user.role;
 
         const query = {
@@ -49,11 +49,11 @@ export default class User {
           .select()
           .where({ username: user.username });
 
-        if (location) {
+        if (instance) {
           let iids = [];
           iids = await trx('instances')
             .select('id')
-            .where({ id: parseInt(iid ? iid : location) });
+            .where({ id: parseInt(iid ? iid : instance) });
 
           if (!Array.isArray(iids) || iids.length < 1) {
             throw new BadRequestError('Invalid instance ID.');
@@ -110,10 +110,10 @@ export default class User {
         isActive: user.isActive,
       };
 
-      if (user.location) {
+      if (user.instance) {
         let iids = await trx('instances')
           .select('id')
-          .where({ id: parseInt(user.location) });
+          .where({ id: parseInt(user.instance) });
 
         iids = iids ? iids : [];
 
@@ -126,7 +126,7 @@ export default class User {
           .where({ uid: parseInt(id) });
 
         await trx('instance_users').insert({ iid: iids[0].id, uid: id });
-        delete user.location;
+        delete user.instance;
       }
 
       if (user.role) {
@@ -178,41 +178,103 @@ export default class User {
       throw new BadRequestError('Failed to update user: ', err);
     }
 
-    const query = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      email: user.email,
-      phone: user.phone,
-      extension: user.extension,
-    };
+    return this._db.transaction(async trx => {
+      const query = {
+        username: user.username,
+        oldPassword: user.oldPassword,
+        newPassword: user.newPassword,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        extension: user.extension,
+      };
 
-    try {
-      if (user.oldPassword && user.newPassword) {
-        const record = await this.findById(id, true);
-        if (!comparePass(user.oldPassword, record[0].password)) {
-          throw new Error('Authentication failed.');
+      if (user.instance) {
+        let iids = await trx('instances')
+          .select('id')
+          .where({ id: parseInt(user.instance) });
+
+        iids = iids ? iids : [];
+
+        if (iids.length < 1) {
+          throw new BadRequestError('Invalid instance ID.');
         }
-        const salt = bcrypt.genSaltSync();
-        const hash = bcrypt.hashSync(user.newPassword, salt);
-        query.password = hash;
-      }
-    } catch (err) {
-      throw new ForbiddenError('Failed to update user: ', err);
-    }
 
-    return this._db
-      .table('users')
-      .update(query)
-      .where({ id: parseInt(id) });
+        await trx('instance_users')
+          .del()
+          .where({ uid: parseInt(id) });
+
+        await trx('instance_users').insert({ iid: iids[0].id, uid: id });
+        delete user.instance;
+      }
+
+      if (user.role) {
+        let gids = await trx('groups')
+          .select('id')
+          .where({ id: parseInt(user.role) });
+
+        gids = gids ? gids : [];
+
+        if (gids.length < 0) {
+          throw new BadRequestError('Invalid group ID.');
+        }
+
+        await trx('user_groups')
+          .del()
+          .where({ uid: parseInt(id) });
+
+        await trx('user_groups').insert({ gid: gids[0].id, uid: id });
+        delete user.role;
+      }
+
+      try {
+        if (user.oldPassword && user.newPassword) {
+          const record = await this.findById(id, true);
+          if (!comparePass(user.oldPassword, record[0].password)) {
+            throw new Error('Authentication failed.');
+          }
+          const salt = bcrypt.genSaltSync();
+          const hash = bcrypt.hashSync(user.newPassword, salt);
+          query.password = hash;
+        }
+      } catch (err) {
+        throw new ForbiddenError('Failed to update user: ', err);
+      }
+
+      if (!_.isEmpty(user)) {
+        if (user.password) {
+          const salt = bcrypt.genSaltSync();
+          query.password = bcrypt.hashSync(user.password, salt);
+        }
+        return await trx('users')
+          .where({ id: parseInt(id) })
+          .update(query, [
+            'id',
+            'firstName',
+            'lastName',
+            'username',
+            'email',
+            'phone',
+            'extension',
+            'isActive',
+          ]);
+      } else {
+        return [id];
+      }
+    });
   }
 
   async delete(id) {
-    return this._db
-      .table('users')
-      .del()
-      .where({ id: parseInt(id) })
-      .returning('*');
+    try {
+      await this._db
+        .table('users')
+        .del()
+        .where({ id: parseInt(id) });
+      return id;
+    } catch (err) {
+      throw new BadRequestError(`Failed to delete device with ID ${id}: `, err);
+    }
   }
 
   async find({
@@ -231,8 +293,8 @@ export default class User {
         username: 'users.username',
         firstName: 'users.firstName',
         lastName: 'users.lastName',
-        location: 'instances.id',
-        location_name: 'instances.domain',
+        instance: 'instances.id',
+        instance_name: 'instances.name',
         role: 'groups.id',
         role_name: 'groups.name',
         email: 'users.email',
@@ -294,8 +356,8 @@ export default class User {
           password: 'users.password',
           firstName: 'users.firstName',
           lastName: 'users.lastName',
-          location: 'instances.id',
-          location_name: 'instances.domain',
+          instance: 'instances.id',
+          instance_name: 'instances.name',
           role: 'groups.id',
           role_name: 'groups.name',
           email: 'users.email',
@@ -316,8 +378,8 @@ export default class User {
           username: 'users.username',
           firstName: 'users.firstName',
           lastName: 'users.lastName',
-          location: 'instances.id',
-          location_name: 'instances.domain',
+          instance: 'instances.id',
+          instance_name: 'instances.name',
           role: 'groups.id',
           role_name: 'groups.name',
           email: 'users.email',
@@ -348,8 +410,8 @@ export default class User {
           password: 'users.password',
           firstName: 'users.firstName',
           lastName: 'users.lastName',
-          location: 'instances.id',
-          location_name: 'instances.domain',
+          instance: 'instances.id',
+          instance_name: 'instances.name',
           role: 'groups.id',
           role_name: 'groups.name',
           email: 'users.email',
@@ -371,8 +433,8 @@ export default class User {
           username: 'users.username',
           firstName: 'users.firstName',
           lastName: 'users.lastName',
-          location: 'instances.id',
-          location_name: 'instances.domain',
+          instance: 'instances.id',
+          instance_name: 'instances.name',
           role: 'groups.id',
           role_name: 'groups.name',
           email: 'users.email',

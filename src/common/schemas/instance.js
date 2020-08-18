@@ -7,12 +7,7 @@ const creationSchema = Joi.array()
       domain: Joi.string()
         .domain()
         .required(),
-      host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_port: Joi.number().port(),
-      db_name: Joi.string().required(),
-      db_user: Joi.string().required(),
-      db_password: Joi.string().required(),
+      name: Joi.string().required(),
       secret: Joi.string().required(),
       redirect_uri: Joi.string()
         .uri()
@@ -27,12 +22,7 @@ const updateSchema = Joi.array()
       domain: Joi.string()
         .domain()
         .required(),
-      host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_port: Joi.number().port(),
-      db_name: Joi.string().required(),
-      db_user: Joi.string().required(),
-      db_password: Joi.string().required(),
+      name: Joi.string().required(),
       secret: Joi.string().required(),
       redirect_uri: Joi.string()
         .uri()

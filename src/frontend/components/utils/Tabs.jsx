@@ -86,7 +86,7 @@ export default function NavTabs(props) {
         <Users user={user} instance={instance} />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <Instances instance={instance} />
+        <Instances user={user} instance={instance} />
       </TabPanel>
     </div>
   );

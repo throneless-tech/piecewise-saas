@@ -1,6 +1,11 @@
+import path from 'path';
 import Router from '@koa/router';
-import moment from 'moment';
 import Joi from '@hapi/joi';
+import * as compose from 'docker-compose';
+import moment from 'moment';
+import { dir } from 'tmp-promise';
+import { promises as fs } from 'fs';
+
 import { BadRequestError } from '../../common/errors.js';
 import {
   validateCreation,
@@ -9,6 +14,8 @@ import {
 import { getLogger } from '../log.js';
 
 const log = getLogger('backend:controllers:instance');
+
+const __dirname = path.resolve();
 
 const query_schema = Joi.object({
   start: Joi.number()
@@ -41,21 +48,62 @@ export default function controller(instances, thisUser) {
 
   router.post('/instances', thisUser.can('access admin pages'), async ctx => {
     log.debug('Adding new instance.');
-    let instance;
+    let data, instance, composeOptions, cleanupCb, tmpDir;
 
     try {
-      const data = await validateCreation(ctx.request.body.data);
+      data = await validateCreation(ctx.request.body.data);
+    } catch (err) {
+      log.error('HTTP 400 Error: ', err);
+      ctx.throw(400, `Failed to parse instance schema: ${err}`);
+    }
+
+    try {
       instance = await instances.create(data);
 
       // workaround for sqlite
       if (Number.isInteger(instance[0])) {
         instance = await instances.findById(instance[0]);
       }
+
+      // create custom variables for env file
+      const contents = `
+      PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
+      PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
+      `;
+
+      // options for docker build
+      composeOptions = [['--project-name', `Piecewise_${instance[0].name}`]];
+
+      const { path: tmp, cleanup } = await dir({
+        prefix: 'piecewise-',
+        unsafeCleanup: true,
+      });
+      tmpDir = tmp;
+      cleanupCb = cleanup;
+      log.debug('Creating temporary directory: ', tmpDir);
+      // create custom  env vars file
+      await fs.writeFile(path.join(tmpDir, '.env'), contents);
+      await fs.copyFile(
+        path.join(__dirname, './src/backend/instances', 'docker-compose.yml'),
+        path.join(tmpDir, 'docker-compose.yml'),
+      );
     } catch (err) {
-      log.error('HTTP 400 Error: ', err);
-      ctx.throw(400, `Failed to parse instance schema: ${err}`);
+      log.error('HTTP 500 Error: ', err);
+      ctx.throw(500, `Failed to setup docker-compose environment: ${err}`);
     }
 
+    // docker-compose up
+    compose
+      .upAll({
+        cwd: tmpDir,
+        log: true,
+        composeOptions: composeOptions,
+      })
+      .then(() => cleanupCb())
+      .catch(err => {
+        log.error('HTTP 500 Error: ', err);
+        ctx.throw(500, `Failed to cleanly run docker-compose: ${err}`);
+      });
     ctx.response.body = { statusCode: 201, status: 'created', data: instance };
     ctx.response.status = 201;
   });
@@ -113,6 +161,22 @@ export default function controller(instances, thisUser) {
 
       try {
         instance = await instances.findById(ctx.params.id);
+
+        // TODO: Delete docker containers related to instance
+        // compose
+        //   .stopOne(ctx.params.id)
+        //   .then(
+        //     res => {
+        //       log.debug('Response: ', res);
+        //       return;
+        //     },
+        //     err => {
+        //       log.error('An error occurred: ', err.message);
+        //     },
+        //   )
+        //   .catch(err => {
+        //     log.error('An error occurred: ', err);
+        //   });
       } catch (err) {
         log.error('HTTP 400 Error: ', err);
         ctx.throw(400, `Failed to parse query: ${err}`);
@@ -143,17 +207,19 @@ export default function controller(instances, thisUser) {
       let updated;
 
       try {
-        console.log('***ctx.request.body***:', ctx.request.body);
         const data = await validateUpdate(ctx.request.body.data);
         updated = await instances.update(ctx.params.id, data);
       } catch (err) {
         log.error('HTTP 400 Error: ', err);
         ctx.throw(400, `Failed to parse query: ${err}`);
       }
-      console.log('***UPDATED***:', updated);
-
       if (updated) {
-        ctx.response.status = 204;
+        const instance = await instances.findById(ctx.params.id);
+        ctx.response.body = {
+          statusCode: 204,
+          status: 'update',
+          data: instance,
+        };
       } else {
         ctx.response.body = {
           statusCode: 201,
@@ -180,7 +246,8 @@ export default function controller(instances, thisUser) {
       }
 
       if (instance > 0) {
-        ctx.response.status = 204;
+        ctx.response.body = { statusCode: 200, status: 'ok', data: instance };
+        ctx.response.status = 200;
       } else {
         log.error(
           `HTTP 404 Error: That instance with ID ${
