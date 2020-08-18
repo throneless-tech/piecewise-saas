@@ -71,7 +71,7 @@ export default function Login(props) {
     //
     // console.log('json: ', json);
 
-    fetch('/api/v1/login', {
+    fetch('/api/v1/login' + props.location.search, {
       method: 'POST',
       body: formData,
     })
@@ -192,4 +192,7 @@ export default function Login(props) {
 
 Login.propTypes = {
   onAuthUpdate: PropTypes.func.isRequired,
+  location: PropTypes.shape({
+    search: PropTypes.string,
+  }),
 };

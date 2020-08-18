@@ -15,10 +15,10 @@ const Error = ({ error, componentStack, resetErrorBoundary }) => {
 
 Error.propTypes = {
   error: PropTypes.shape({
-    message: PropTypes.string,
-  }),
+    message: PropTypes.string.isRequired,
+  }).isRequired,
   componentStack: PropTypes.object,
-  resetErrorBoundary: PropTypes.func,
+  resetErrorBoundary: PropTypes.func.isRequired,
 };
 
 export default Error;

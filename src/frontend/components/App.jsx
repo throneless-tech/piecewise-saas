@@ -139,9 +139,9 @@ export default function App() {
             throw new Error(error);
           }
         })
-        .catch(error => {
-          setError(error);
-          console.error(error.name + error.message);
+        .catch(err => {
+          setError(err);
+          console.error(err);
           setIsLoaded(true);
         });
     } else {

@@ -36,7 +36,7 @@ export default class Oauth {
     const client = await this._db
       .table('instances')
       .select('domain', 'secret', 'redirect_uri')
-      .where({ domain: clientId, secret: clientSecret });
+      .where({ domain: clientId });
     return {
       id: client[0].domain,
       grants: ['password'],
@@ -88,9 +88,10 @@ export default class Oauth {
       const query = {
         access_token: token.accessToken,
         access_token_expires_at: token.accessTokenExpiresAt.toISOString(),
-        client_id: client.id,
         refresh_token: token.refreshToken,
         refresh_token_expires_at: token.refreshTokenExpiresAt.toISOString(),
+        scope: token.scope,
+        client_id: client.id,
         user_id: user.id,
       };
 
@@ -100,8 +101,8 @@ export default class Oauth {
         .select('*')
         .where({
           access_token: token.accessToken,
-          client_id: client.id,
           refresh_token: token.refreshToken,
+          client_id: client.id,
           user_id: user.id,
         });
       return {
@@ -115,10 +116,53 @@ export default class Oauth {
         ).toDate(),
         scope: tokens[0].scope,
         client: { id: tokens[0].client_id },
-        user: user,
+        user: { id: tokens[0].user_id },
       };
     } catch (err) {
       throw new BadRequestError('Failed to save token: ', err);
+    }
+  }
+
+  async saveAuthorizationCode(code, client, user) {
+    log.debug(
+      'OAuth2: saveAuthorizationCode() for code : client : user',
+      code,
+      ':',
+      client,
+      ':',
+      user,
+    );
+    try {
+      //await validate(code);
+
+      const query = {
+        code: code.authorizationCode,
+        expires_at: code.expiresAt.toISOString(),
+        redirect_uri: code.redirectUri,
+        scope: code.scope,
+        client_id: client.id,
+        user_id: user.id,
+      };
+
+      await this._db.table('oauth_codes').insert(query);
+      const codes = await this._db
+        .table('oauth_codes')
+        .select('*')
+        .where({
+          auth_code: code.authorizationCode,
+          client_id: client.id,
+          user_id: user.id,
+        });
+      return {
+        authorizationCode: codes[0].auth_code,
+        expiresAt: moment(codes[0].auth_code_expires_at).toDate(),
+        redirectUri: codes[0].redirect_uri,
+        scope: codes[0].scope,
+        client: { id: codes[0].client_id },
+        user: { id: codes[0].user_id },
+      };
+    } catch (err) {
+      throw new BadRequestError('Failed to save code: ', err);
     }
   }
 

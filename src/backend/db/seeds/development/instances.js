@@ -7,14 +7,16 @@ export function seed(knex) {
         {
           id: 1,
           domain: 'piecewise1.localhost',
-          secret: '1234567890',
-          redirect_uri: 'http://piecewise1.localhost:3001',
+          secret: 'secret',
+          redirect_uri:
+            'http://piecewise1.localhost:3001/api/v1/oauth2/callback',
         },
         {
           id: 2,
           domain: 'piecewise2.localhost',
-          secret: '1234567890',
-          redirect_uri: 'http://piecewise2.localhost:3002',
+          secret: 'secret',
+          redirect_uri:
+            'http://piecewise2.localhost:3002/api/v1/oauth2/callback',
         },
       ]);
     });

@@ -1,18 +1,33 @@
 import Router from '@koa/router';
 import oauthWrapper from '../middleware/oauth.js';
-//import { getLogger } from '../log.js';
+import { getLogger } from '../log.js';
 
-//const log = getLogger('backend:controllers:oauth');
+const log = getLogger('backend:controllers:oauth');
 
 export default function controller(oauth) {
   const router = new Router();
-  const { authorization, token } = oauthWrapper({ model: oauth });
+  const { authorize, token } = oauthWrapper({
+    model: oauth,
+  });
 
   // Post authorization.
-  router.get('/authorize', authorization, async ctx => {
+  router.get('/authorize', authorize, async ctx => {
+    log.debug('ctx.query: ', ctx.query);
     // Redirect anonymous users to login page.
-    if (!ctx.isAuthenticated()) {
-      return ctx.redirect('/login');
+    if (
+      !ctx.isAuthenticated() &&
+      ctx.query.redirect_uri &&
+      ctx.query.client_id &&
+      ctx.query.response_type === 'code'
+    ) {
+      return ctx.redirect(
+        '/login' +
+          '?response_type=code' +
+          '&redirect_uri=' +
+          ctx.query.redirect_uri +
+          '&client_id=' +
+          ctx.query.client_id,
+      );
     }
 
     if (ctx.state.oauth && ctx.state.oauth.code) {

@@ -1,6 +1,9 @@
 // based on https://github.com/cedricode/koa2-oauth2-server
 import OAuth2Server, { Request, Response } from 'oauth2-server';
 import { BadRequestError, ServerError } from '../../common/errors.js';
+import { getLogger } from '../log.js';
+
+const log = getLogger('backend:middleware:oauth');
 
 const oauthWrapper = options => {
   if (!options.model) {
@@ -23,12 +26,23 @@ const oauthWrapper = options => {
     await next();
   };
 
-  const authorization = async (ctx, next) => {
+  const authorize = async (ctx, next) => {
     const request = new Request(ctx.request);
     const response = new Response(ctx.response);
 
     try {
-      const code = server.authorize(request, response, options);
+      const code = server.authorize(request, response, {
+        authenticateHandler: {
+          handle: () => {
+            log.debug('*** handling authentication ***:', ctx.state);
+            if (ctx.isAuthenticated()) {
+              return ctx.state.user;
+            } else {
+              return false;
+            }
+          },
+        },
+      });
       ctx.state.oauth = { code: code };
     } catch (err) {
       throw new BadRequestError('Failed to grant OAuth2 token: ', err);
@@ -51,7 +65,7 @@ const oauthWrapper = options => {
     await next();
   };
 
-  return { authenticate, authorization, token };
+  return { authenticate, authorize, token };
 };
 
 export default oauthWrapper;

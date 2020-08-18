@@ -120,7 +120,27 @@ export default function controller(users, thisUser) {
           success: true,
           user: user,
         };
-        return ctx.login(user);
+        log.debug('ctx.query: ', ctx.query);
+        if (
+          ctx.query.client_id &&
+          ctx.query.redirect_uri &&
+          ctx.query.response_type
+        ) {
+          return ctx
+            .login(user)
+            .then(() =>
+              ctx.redirect(
+                '/oauth2/authorize' +
+                  '?response_type=code' +
+                  '&redirect_uri=' +
+                  ctx.query.redirect_uri +
+                  '&client_id=' +
+                  ctx.query.client_id,
+              ),
+            );
+        } else {
+          return ctx.login(user);
+        }
       }
     })(ctx);
   });
