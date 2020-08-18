@@ -28,8 +28,9 @@ services:
     depends_on:
       - piecewise-saas-db
     networks:
+      - piecewise-private
       - piecewise-saas-private
-      - piecewise-saas-public
+      - piecewise-public
     ports:
       - "3000:3000"
     environment:
@@ -64,6 +65,8 @@ volumes:
   piecewise-letsencrypt: {}
 
 networks:
+  piecewise-private:
+    internal: true
   piecewise-saas-private:
     internal: true
-  piecewise-saas-public:
+  piecewise-public:
