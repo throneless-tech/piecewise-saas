@@ -1,15 +1,10 @@
 # Build layer
-FROM node:14-alpine AS build
+FROM node:14-stretch-slim AS build
 
-RUN apk add --no-cache \
-    build-base \
-    python \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    netcat-openbsd
+RUN apt-get -qq update && \
+    apt-get install -y --no-install-recommends build-essential \
+                                               python
+
 WORKDIR /src
 COPY ./package* ./
 
@@ -22,24 +17,24 @@ RUN npm run test
 
 ENV NODE_ENV=production
 
-# Avoid lscpu warning on Alpine
-#ENV PARCEL_WORKERS=1
-
 RUN npm run build
 
 RUN npm prune --production
 
 # Main layer
-FROM node:14-alpine
+FROM node:14-stretch-slim
 
-RUN apk add --update --no-cache curl
+RUN apt-get -qq update && \
+    apt-get install -y --no-install-recommends curl \
+                                               netcat-openbsd \
+                                               docker \
+                                               docker-compose
 
 EXPOSE 3000
 
 WORKDIR /app
 
 COPY --from=build /src .
-COPY ./docker-entrypoint.sh .
 
 HEALTHCHECK --interval=5s \
             --timeout=5s \

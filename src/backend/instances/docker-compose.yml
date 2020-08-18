@@ -1,7 +1,7 @@
 version: "3"
 services:
   piecewise:
-    image: test:latest
+    image: mlab/piecewise:latest
     container_name: ${PIECEWISE_CONTAINER_NAME}
     depends_on:
       - piecewise-db
@@ -17,6 +17,12 @@ services:
       PIECEWISE_DB_USER: ${PIECEWISE_DB_USER:-piecewise}
       PIECEWISE_DB_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
       PIECEWISE_DB_DATABASE: ${PIECEWISE_DB_DATABASE:-piecewise}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.saas.rule=Host(`${PIECEWISE_DOMAIN}`)"
+      - "traefik.http.routers.saas.entrypoints=websecure"
+      - "traefik.http.routers.saas.tls.certresolver=myresolver"
+
 
   piecewise-db:
     container_name: ${PIECEWISE_DB_CONTAINER_NAME}
