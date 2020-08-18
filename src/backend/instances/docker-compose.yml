@@ -1,7 +1,7 @@
 version: "3"
 services:
   piecewise:
-    image: mlab/piecewise:latest
+    image: measurementlab/piecewise:latest
     container_name: ${PIECEWISE_CONTAINER_NAME}
     depends_on:
       - piecewise-db
