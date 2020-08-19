@@ -9,14 +9,6 @@ export function seed(knex) {
             id: 1,
             name: 'admins',
           },
-          {
-            id: 2,
-            name: 'editors',
-          },
-          {
-            id: 3,
-            name: 'viewers',
-          },
         ]);
       }),
   ]);
