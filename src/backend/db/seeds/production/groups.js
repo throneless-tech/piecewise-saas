@@ -11,5 +11,16 @@ export function seed(knex) {
           },
         ]);
       }),
+    knex('user_groups')
+      .del()
+      .then(function() {
+        // Inserts seed entries
+        return knex('user_groups').insert([
+          {
+            gid: 1,
+            uid: 1,
+          },
+        ]);
+      }),
   ]);
 }
