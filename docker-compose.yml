@@ -32,6 +32,8 @@ services:
       - piecewise-private
       - piecewise-saas-private
       - piecewise-public
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PIECEWISE_SAAS_LOG_LEVEL: ${PIECEWISE_SAAS_LOG_LEVEL:-debug}
@@ -47,7 +49,6 @@ services:
       - "traefik.http.routers.saas.rule=Host(`${PIECEWISE_SAAS_DOMAIN}`)"
       - "traefik.http.routers.saas.entrypoints=websecure"
       - "traefik.http.routers.saas.tls.certresolver=myresolver"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   piecewise-saas-db:
     image: postgres:12-alpine

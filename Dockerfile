@@ -1,5 +1,5 @@
 # Build layer
-FROM node:14-stretch-slim AS build
+FROM node:14-buster-slim AS build
 
 RUN apt-get -qq update && \
     apt-get install -y --no-install-recommends build-essential \
@@ -22,12 +22,12 @@ RUN npm run build
 RUN npm prune --production
 
 # Main layer
-FROM node:14-stretch-slim
+FROM node:14-buster-slim
 
 RUN apt-get -qq update && \
     apt-get install -y --no-install-recommends curl \
                                                netcat-openbsd \
-                                               docker \
+                                               docker.io \
                                                docker-compose
 
 EXPOSE 3000
@@ -43,6 +43,6 @@ HEALTHCHECK --interval=5s \
 
 ENV NODE_ENV=production
 
-USER node
+USER root
 
 CMD ["./docker-entrypoint.sh"]

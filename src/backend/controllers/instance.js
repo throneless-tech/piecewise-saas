@@ -69,7 +69,7 @@ export default function controller(instances, thisUser) {
       const contents = `
       PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
       PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
-      PIECEWISE_DOMAIN=piecewise-${instance[0].domain}
+      PIECEWISE_DOMAIN=${instance[0].domain}
       `;
 
       // options for docker build
