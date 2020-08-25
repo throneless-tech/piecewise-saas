@@ -1,26 +1,58 @@
-version: "3"
+version: "3.5"
 services:
+  traefik:
+    image: "traefik:v2.2"
+    container_name: "traefik"
+    networks:
+      - piecewise-private
+      - piecewise-public
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=critzo@measurementlab.net"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "piecewise-letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
   piecewise-saas:
     build: .
+    container_name: "piecewise-saas"
     depends_on:
       - piecewise-saas-db
     networks:
+      - piecewise-private
       - piecewise-saas-private
-      - piecewise-saas-public
-    ports:
-      - "3000:3000"
+      - piecewise-public
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PIECEWISE_SAAS_LOG_LEVEL: ${PIECEWISE_SAAS_LOG_LEVEL:-debug}
       PIECEWISE_SAAS_HOST: ${PIECEWISE_SAAS_HOST:-0.0.0.0}
       PIECEWISE_SAAS_PORT: ${PIECEWISE_SAAS_PORT:-3000}
-      PIECEWISE_SAAS_DB_HOST: ${PIECEWISE_SAAS_DB_USER:-piecewise-saas-db}
+      PIECEWISE_SAAS_DB_HOST: ${PIECEWISE_SAAS_DB_HOST:-piecewise-saas-db}
+      PIECEWISE_SAAS_DB_PORT: ${PIECEWISE_SAAS_DB_PORT:-5432}
       PIECEWISE_SAAS_DB_USER: ${PIECEWISE_SAAS_DB_USER:-piecewise-saas}
       PIECEWISE_SAAS_DB_PASSWORD: ${PIECEWISE_SAAS_DB_PASSWORD:-piecewise-saas}
       PIECEWISE_SAAS_DB_DATABASE: ${PIECEWISE_SAAS_DB_DATABASE:-piecewise-saas}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.saas.rule=Host(`${PIECEWISE_SAAS_DOMAIN}`)"
+      - "traefik.http.routers.saas.entrypoints=websecure"
+      - "traefik.http.routers.saas.tls.certresolver=myresolver"
 
   piecewise-saas-db:
     image: postgres:12-alpine
+    container_name: "piecewise-saas-db"
     volumes:
       - piecewise-saas-db_data:/var/lib/postgresql/data
     networks:
@@ -33,8 +65,14 @@ services:
 
 volumes:
   piecewise-saas-db_data: {}
+  piecewise-letsencrypt: {}
 
 networks:
-  piecewise-saas-private:
+  piecewise-private:
+    name: piecewise-private
     internal: true
-  piecewise-saas-public:
+  piecewise-saas-private:
+    name: piecewise-saas-private
+    internal: true
+  piecewise-public:
+    name: piecewise-public

@@ -1,7 +1,7 @@
-version: "3"
+version: "3.5"
 services:
   piecewise:
-    image: test:latest
+    image: measurementlab/piecewise:latest
     container_name: ${PIECEWISE_CONTAINER_NAME}
     depends_on:
       - piecewise-db
@@ -14,9 +14,17 @@ services:
       PIECEWISE_HOST: ${PIECEWISE_HOST:-0.0.0.0}
       PIECEWISE_PORT: ${PIECEWISE_PORT:-3000}
       PIECEWISE_DB_HOST: ${PIECEWISE_DB_USER:-piecewise-db}
+      PIECEWISE_DB_PORT: ${PIECEWISE_DB_PORT:-5432}
       PIECEWISE_DB_USER: ${PIECEWISE_DB_USER:-piecewise}
       PIECEWISE_DB_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
       PIECEWISE_DB_DATABASE: ${PIECEWISE_DB_DATABASE:-piecewise}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.rule=Host(`${PIECEWISE_DOMAIN}`)"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.tls.certresolver=myresolver"
+      - "traefik.http.services.${PIECEWISE_CONTAINER_NAME}.loadbalancer.server.port=3000"
+
 
   piecewise-db:
     container_name: ${PIECEWISE_DB_CONTAINER_NAME}
@@ -36,5 +44,7 @@ volumes:
 
 networks:
   piecewise-private:
+    name: piecewise-private
     internal: true
   piecewise-public:
+    name: piecewise-public

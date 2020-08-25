@@ -1,14 +1,10 @@
 # Build layer
-FROM node:14-alpine AS build
+FROM node:14-buster-slim AS build
 
-RUN apk add --no-cache \
-    build-base \
-    python \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev
+RUN apt-get -qq update && \
+    apt-get install -y --no-install-recommends build-essential \
+                                               python
+
 WORKDIR /src
 COPY ./package* ./
 
@@ -21,17 +17,18 @@ RUN npm run test
 
 ENV NODE_ENV=production
 
-# Avoid lscpu warning on Alpine
-#ENV PARCEL_WORKERS=1
-
 RUN npm run build
 
 RUN npm prune --production
 
 # Main layer
-FROM node:14-alpine
+FROM node:14-buster-slim
 
-RUN apk add --update --no-cache curl
+RUN apt-get -qq update && \
+    apt-get install -y --no-install-recommends curl \
+                                               netcat-openbsd \
+                                               docker.io \
+                                               docker-compose
 
 EXPOSE 3000
 
@@ -46,6 +43,6 @@ HEALTHCHECK --interval=5s \
 
 ENV NODE_ENV=production
 
-USER node
+USER root
 
-CMD ["node", "./dist/backend/index.js"]
+CMD ["./docker-entrypoint.sh"]

@@ -200,7 +200,7 @@ export default function controller(users, thisUser) {
     ctx.response.status = 201;
   });
 
-  router.get('/users', thisUser.can('view this instance'), async ctx => {
+  router.get('/users', thisUser.can('access admin pages'), async ctx => {
     log.debug(`Retrieving users.`);
     let res;
 
