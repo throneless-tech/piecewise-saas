@@ -13,7 +13,7 @@ export function up(knex) {
           .unique()
           .index()
           .notNullable();
-	table.string('name').unique();
+        table.string('name').unique();
         table.text('secret');
         table.text('redirect_uri');
         table.timestamps(true, true);

@@ -71,6 +71,7 @@ export default function Login(props) {
     //
     // console.log('json: ', json);
 
+    console.log('props.location.search: ', props.location.search);
     fetch('/api/v1/login' + props.location.search, {
       method: 'POST',
       body: formData,

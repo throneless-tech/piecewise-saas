@@ -104,6 +104,7 @@ export default function controller(users, thisUser) {
    * @param {Object} ctx - Koa context object
    */
   router.post('/login', async ctx => {
+    log.debug('ctx: ', ctx);
     return passport.authenticate('local', (err, user) => {
       if (!user) {
         ctx.body = { success: false };

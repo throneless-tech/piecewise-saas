@@ -13,6 +13,7 @@ const oauthWrapper = options => {
   const server = new OAuth2Server(options);
 
   const authenticate = async (ctx, next) => {
+    log.debug('Calling authentication middleware');
     const request = new Request(ctx.request);
     const response = new Response(ctx.response);
 
@@ -20,38 +21,41 @@ const oauthWrapper = options => {
       const token = server.authenticate(request, response, options);
       ctx.state.oauth = { token: token };
     } catch (err) {
-      throw new BadRequestError('Failed to grant OAuth2 token: ', err);
+      throw new BadRequestError('Failed to grant OAuth2 authentication: ', err);
     }
 
     await next();
   };
 
   const authorize = async (ctx, next) => {
+    log.debug('Calling authorization middleware');
     const request = new Request(ctx.request);
     const response = new Response(ctx.response);
 
     try {
-      const code = server.authorize(request, response, {
-        authenticateHandler: {
-          handle: () => {
-            log.debug('*** handling authentication ***:', ctx.state);
-            if (ctx.isAuthenticated()) {
-              return ctx.state.user;
-            } else {
-              return false;
-            }
-          },
-        },
-      });
+      const code = server.authorize(request, response, options);
+      //const code = server.authorize(request, response, {
+      //  authenticateHandler: {
+      //    handle: () => {
+      //      log.debug('*** handling authentication ***:', ctx.state);
+      //      if (ctx.isAuthenticated()) {
+      //        return ctx.state.user;
+      //      } else {
+      //        return false;
+      //      }
+      //    },
+      //  },
+      //});
       ctx.state.oauth = { code: code };
     } catch (err) {
-      throw new BadRequestError('Failed to grant OAuth2 token: ', err);
+      throw new BadRequestError('Failed to grant OAuth2 authorization: ', err);
     }
 
     await next();
   };
 
   const token = async (ctx, next) => {
+    log.debug('Calling token middleware');
     const request = new Request(ctx.request);
     const response = new Response(ctx.response);
 
