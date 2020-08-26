@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import moment from 'moment';
-import { validate } from '../../common/schemas/oauth.js';
+//import { validate } from '../../common/schemas/oauth.js';
 import { BadRequestError } from '../../common/errors.js';
 import { getLogger } from '../log.js';
 
