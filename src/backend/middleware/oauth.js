@@ -27,7 +27,7 @@ const oauthWrapper = options => {
     await next();
   };
 
-  const authorize = async (ctx, next) => {
+  const authorize = async ctx => {
     log.debug('Calling authorization middleware');
     const request = new Request(ctx.request);
     const response = new Response(ctx.response);
