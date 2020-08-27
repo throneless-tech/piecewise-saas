@@ -104,7 +104,6 @@ export default function controller(users, thisUser) {
    * @param {Object} ctx - Koa context object
    */
   router.post('/login', async ctx => {
-    log.debug('ctx: ', ctx);
     return passport.authenticate('local', (err, user) => {
       if (!user) {
         ctx.body = { success: false };
@@ -127,9 +126,8 @@ export default function controller(users, thisUser) {
           ctx.query.redirect_uri &&
           ctx.query.response_type
         ) {
-          return ctx
-            .login(user)
-            .then(() =>
+          return ctx.login(user).then(
+            () =>
               ctx.redirect(
                 '/oauth2/authorize' +
                   '?response_type=code' +
@@ -138,7 +136,8 @@ export default function controller(users, thisUser) {
                   '&client_id=' +
                   ctx.query.client_id,
               ),
-            );
+            //ctx.redirect(ctx.query.redirect_uri),
+          );
         } else {
           return ctx.login(user);
         }

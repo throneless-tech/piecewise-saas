@@ -39,7 +39,7 @@ export default class Oauth {
       .where({ domain: clientId });
     return {
       id: client[0].domain,
-      grants: ['password'],
+      grants: ['authorization_code'],
       accessTokenLifeTime: accessTokenLifeTime,
       refreshTokenLifeTime: refreshTokenLifeTime,
       redirectUris: [client[0].redirect_uri],
@@ -141,7 +141,7 @@ export default class Oauth {
         redirect_uri: code.redirectUri,
         scope: code.scope,
         client_id: client.id,
-        user_id: user.id,
+        user_id: user[0].id,
       };
 
       await this._db.table('oauth_codes').insert(query);
@@ -149,12 +149,12 @@ export default class Oauth {
         .table('oauth_codes')
         .select('*')
         .where({
-          auth_code: code.authorizationCode,
+          code: code.authorizationCode,
           client_id: client.id,
-          user_id: user.id,
+          user_id: user[0].id,
         });
       return {
-        authorizationCode: codes[0].auth_code,
+        authorizationCode: codes[0].code,
         expiresAt: moment(codes[0].auth_code_expires_at).toDate(),
         redirectUri: codes[0].redirect_uri,
         scope: codes[0].scope,

@@ -11,8 +11,9 @@ export default function controller(oauth) {
   });
 
   // Post authorization.
-  router.get('/authorize', authorize, async ctx => {
+  router.get('/authorize', async (ctx, next) => {
     log.debug('ctx.query: ', ctx.query);
+    log.debug('ctx.isAuthenticated(): ', ctx.isAuthenticated());
     // Redirect anonymous users to login page.
     if (
       !ctx.isAuthenticated() &&
@@ -29,6 +30,8 @@ export default function controller(oauth) {
           ctx.query.client_id,
       );
     }
+
+    await authorize(ctx, next);
 
     if (ctx.state.oauth && ctx.state.oauth.code) {
       ctx.response.body = {

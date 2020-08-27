@@ -76,7 +76,12 @@ export default function Login(props) {
       method: 'POST',
       body: formData,
     })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status !== 200) {
+          throw new Error('Failed to login.');
+        }
+        return res.json();
+      })
       .then(results => {
         if (results.success) {
           setError(false);

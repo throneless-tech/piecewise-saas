@@ -33,25 +33,25 @@ const oauthWrapper = options => {
     const response = new Response(ctx.response);
 
     try {
-      const code = server.authorize(request, response, options);
-      //const code = server.authorize(request, response, {
-      //  authenticateHandler: {
-      //    handle: () => {
-      //      log.debug('*** handling authentication ***:', ctx.state);
-      //      if (ctx.isAuthenticated()) {
-      //        return ctx.state.user;
-      //      } else {
-      //        return false;
-      //      }
-      //    },
-      //  },
-      //});
+      //const code = server.authorize(request, response, options);
+      const code = server.authorize(request, response, {
+        authenticateHandler: {
+          handle: () => {
+            if (ctx.isAuthenticated()) {
+              return ctx.state.user;
+            } else {
+              return false;
+            }
+          },
+        },
+        allowEmptyState: true,
+      });
       ctx.state.oauth = { code: code };
     } catch (err) {
       throw new BadRequestError('Failed to grant OAuth2 authorization: ', err);
     }
 
-    await next();
+    //await next();
   };
 
   const token = async (ctx, next) => {

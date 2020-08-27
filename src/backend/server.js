@@ -88,6 +88,12 @@ export default function configServer(config) {
   // Specify that this is our backend API (for better-errror-handler)
   server.context.api = true;
 
+  // Setup session middleware
+  server.use(async (ctx, next) => {
+    let session = await sessionWrapper(server, db);
+    await session(ctx, next);
+  });
+
   // If we're running behind Cloudflare, set the access parameters.
   if (config.cfaccess_url && config.cfaccess_audience) {
     server.use(async (ctx, next) => {
@@ -121,12 +127,6 @@ export default function configServer(config) {
     .use(cors())
     .use(mount('/api/v1', apiV1Router))
     .use(mount('/oauth2', oauthRouter));
-
-  // Setup session middleware
-  server.use(async (ctx, next) => {
-    let session = await sessionWrapper(server, db);
-    await session(ctx, next);
-  });
 
   server.context.api = false;
   server
