@@ -12,8 +12,10 @@ export default function controller(oauth) {
 
   // Post authorization.
   router.get('/authorize', async (ctx, next) => {
-    log.debug('ctx.query: ', ctx.query);
-    log.debug('ctx.isAuthenticated(): ', ctx.isAuthenticated());
+    log.debug(
+      'User seeking authorization is authenticated: ',
+      ctx.isAuthenticated(),
+    );
     // Redirect anonymous users to login page.
     if (
       !ctx.isAuthenticated() &&
@@ -37,7 +39,7 @@ export default function controller(oauth) {
       ctx.response.body = {
         statusCode: 200,
         status: 'ok',
-        data: ctx.state.oauth.code,
+        data: [ctx.state.oauth.code],
       };
       ctx.response.status = 200;
     } else {
@@ -47,16 +49,13 @@ export default function controller(oauth) {
 
   // Post token.
   router.post('/token', token, async ctx => {
-    // Redirect anonymous users to login page.
-    if (!ctx.isAuthenticated()) {
-      return ctx.redirect('/login');
-    }
-
     if (ctx.state.oauth && ctx.state.oauth.token) {
       ctx.response.body = {
         statusCode: 200,
         status: 'ok',
-        data: ctx.state.oauth.code,
+        accessToken: ctx.state.oauth.token.accessToken,
+        refreshToken: ctx.state.oauth.token.refreshToken,
+        data: [ctx.state.oauth.token],
       };
       ctx.response.status = 200;
     } else {

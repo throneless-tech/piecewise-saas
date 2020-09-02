@@ -18,8 +18,16 @@ export function up(knex) {
           .timestamp('refresh_token_expires_at', { useTz: false })
           .notNullable();
         table.string('scope');
-        table.string('client_id').notNullable();
-        table.integer('user_id').notNullable();
+        table.integer('client_id').index();
+        table
+          .foreign('client_id')
+          .references('id')
+          .inTable('instances');
+        table.integer('user_id').index();
+        table
+          .foreign('user_id')
+          .references('id')
+          .inTable('users');
         table.timestamps(true, true);
       })
       .then(() =>
@@ -38,8 +46,16 @@ export function up(knex) {
         table.timestamp('expires_at', { useTz: false }).notNullable();
         table.string('redirect_uri').notNullable();
         table.string('scope');
-        table.string('client_id').notNullable();
-        table.integer('user_id').notNullable();
+        table.integer('client_id').index();
+        table
+          .foreign('client_id')
+          .references('id')
+          .inTable('instances');
+        table.integer('user_id').index();
+        table
+          .foreign('user_id')
+          .references('id')
+          .inTable('users');
         table.timestamps(true, true);
       })
       .then(() =>

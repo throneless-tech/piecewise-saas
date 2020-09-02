@@ -115,7 +115,7 @@ export default function controller(users, thisUser) {
         } else {
           ctx.session.maxAge = 'session';
         }
-        ctx.cookies.set('mv_user', user.username, { httpOnly: false });
+        ctx.cookies.set('pws_user', user.username, { httpOnly: false });
         ctx.body = {
           success: true,
           user: user,
@@ -127,15 +127,15 @@ export default function controller(users, thisUser) {
           ctx.query.response_type
         ) {
           return ctx.login(user).then(
-            () =>
-              ctx.redirect(
-                '/oauth2/authorize' +
-                  '?response_type=code' +
-                  '&redirect_uri=' +
-                  ctx.query.redirect_uri +
-                  '&client_id=' +
-                  ctx.query.client_id,
-              ),
+            () => (ctx.body.redirect = true),
+            //ctx.redirect(
+            //  '/oauth2/authorize' +
+            //    '?response_type=code' +
+            //    '&redirect_uri=' +
+            //    ctx.query.redirect_uri +
+            //    '&client_id=' +
+            //    ctx.query.client_id,
+            //),
             //ctx.redirect(ctx.query.redirect_uri),
           );
         } else {
@@ -154,7 +154,7 @@ export default function controller(users, thisUser) {
     if (ctx.isAuthenticated()) {
       ctx.logout();
       ctx.session = null;
-      ctx.cookies.set('mv_user', null);
+      ctx.cookies.set('pws_user', null);
       ctx.redirect('/');
     } else {
       ctx.body = { success: false };
