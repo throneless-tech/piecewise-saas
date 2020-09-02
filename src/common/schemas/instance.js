@@ -8,12 +8,10 @@ const creationSchema = Joi.array()
         .domain()
         .required(),
       name: Joi.string().required(),
-      host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_port: Joi.number().port(),
-      db_name: Joi.string(),
-      db_user: Joi.string(),
-      db_password: Joi.string(),
+      secret: Joi.string().required(),
+      redirect_uri: Joi.string()
+        .uri()
+        .required(),
     }),
   )
   .min(1);
@@ -25,12 +23,10 @@ const updateSchema = Joi.array()
         .domain()
         .required(),
       name: Joi.string().required(),
-      host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_host: Joi.any().valid(Joi.string().hostname(), Joi.string().ip()),
-      db_port: Joi.number().port(),
-      db_name: Joi.string(),
-      db_user: Joi.string(),
-      db_password: Joi.string(),
+      secret: Joi.string().required(),
+      redirect_uri: Joi.string()
+        .uri()
+        .required(),
     }).min(1),
   )
   .min(1);

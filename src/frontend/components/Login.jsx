@@ -71,59 +71,73 @@ export default function Login(props) {
     //
     // console.log('json: ', json);
 
-    fetch('/api/v1/login', {
+    console.log('props.location.search: ', props.location.search);
+    const params = new URLSearchParams(props.location.search);
+    const isOauth =
+      params.has('client_id') &&
+      params.has('redirect_uri') &&
+      params.has('response_type');
+
+    const results = await fetch('/api/v1/login' + props.location.search, {
       method: 'POST',
       body: formData,
     })
-      .then(res => res.json())
-      .then(results => {
-        if (results.success) {
-          setError(false);
-          onAuthUpdate(true);
-          setHelperText('Login successful.');
-          if (results.user.role === 1) {
-            return history.push({
-              pathname: '/dashboard',
-              state: { user: results.user },
-            });
-          } else {
-            let instanceStatus;
-            fetch(`/api/v1/instances?of_user=${results.user.id}`)
-              .then(instancesResponse => {
-                instanceStatus = instancesResponse.status;
-                return instancesResponse.json();
-              })
-              .then(instances => {
-                if (instanceStatus === 200) {
-                  return history.push({
-                    pathname: '/dashboard',
-                    state: {
-                      instance: instances.data[0],
-                      user: results.user,
-                    },
-                  });
-                } else {
-                  const error = processError(instances);
-                  throw new Error(error);
-                }
-              })
-              .catch(error => {
-                setError(true);
-                console.error(error.name + error.message);
-              });
-          }
+      .then(res => {
+        console.log('*** RESPONSE ***:', res);
+        if (res.status === 200) {
+          return res.json();
         } else {
-          setError(true);
-          setHelperText('Incorrect username or password.');
-          return;
+          throw new Error('Failed to login.');
         }
-        return;
       })
       .catch(error => {
         setError(true);
         setHelperText('Could not connect to authentication server.');
         console.error('error: ', error);
       });
+
+    if (results.success && isOauth) {
+      const auth = await fetch('/oauth2/authorize' + props.location.search)
+        .then(res => {
+          if (res.status === 200) {
+            return res.json();
+          } else {
+            throw new Error('Failed to login.');
+          }
+        })
+        .catch(error => {
+          setError(true);
+          setHelperText('Could not authorize oauth2 request.');
+          console.error('error: ', error);
+        });
+      console.log('*** AUTH RESPONSE ***:', auth);
+      if (auth.data[0].authorizationCode) {
+        window.location.href =
+          auth.data[0].redirectUri + '?code=' + auth.data[0].authorizationCode;
+        return;
+        //return history.push({
+        //  pathname: params.get('redirect_uri'),
+        //  state: { code: auth.data[0] },
+        //});
+      } else {
+        setError(true);
+        setHelperText('Invalid authorization code.');
+        console.error('error: ', error);
+        return;
+      }
+    } else if (results.success && results.user.role === 1) {
+      setError(false);
+      onAuthUpdate(true);
+      setHelperText('Login successful.');
+      return history.push({
+        pathname: '/dashboard',
+        state: { user: results.user },
+      });
+    } else {
+      setError(true);
+      setHelperText('Incorrect username or password.');
+      return;
+    }
   };
 
   return (
@@ -192,4 +206,7 @@ export default function Login(props) {
 
 Login.propTypes = {
   onAuthUpdate: PropTypes.func.isRequired,
+  location: PropTypes.shape({
+    search: PropTypes.string,
+  }),
 };

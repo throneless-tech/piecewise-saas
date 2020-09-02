@@ -31,7 +31,7 @@ export function seed(knex) {
           },
           {
             id: 3,
-            username: 'viewer',
+            username: 'blah',
             password: hash,
             firstName: 'Bobby',
             lastName: 'Tables',

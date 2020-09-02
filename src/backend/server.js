@@ -20,10 +20,12 @@ import UserController from './controllers/user.js';
 import GroupController from './controllers/group.js';
 import InstanceController from './controllers/instance.js';
 import SettingController from './controllers/setting.js';
+import OauthController from './controllers/oauth.js';
 import Instances from './models/instance.js';
 import Settings from './models/setting.js';
 import Users from './models/user.js';
 import Groups from './models/group.js';
+import Oauth from './models/oauth.js';
 
 const __dirname = path.resolve();
 const STATIC_DIR = path.resolve(__dirname, 'dist', 'frontend');
@@ -71,6 +73,15 @@ export default function configServer(config) {
     ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
   ]);
 
+  // Set up oauth server
+  const oauthModel = new Oauth(db);
+  const oauth = OauthController(oauthModel);
+  const oauthRouter = compose([
+    oauth.routes(),
+    oauth.allowedMethods(),
+    ctx => ctx.throw(404, 'Not a valid API method.'), //fallthrough
+  ]);
+
   // Set custom error handler
   server.context.onerror = errorHandler;
 
@@ -114,7 +125,8 @@ export default function configServer(config) {
     .use(passport.initialize())
     .use(passport.session())
     .use(cors())
-    .use(mount('/api/v1', apiV1Router));
+    .use(mount('/api/v1', apiV1Router))
+    .use(mount('/oauth2', oauthRouter));
 
   server.context.api = false;
   server

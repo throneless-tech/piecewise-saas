@@ -55,10 +55,6 @@ export default function controller(groups, thisUser) {
       log.error('HTTP 400 Error: ', err);
       ctx.throw(400, `Failed to parse group schema: ${err}`);
     }
-    console.log(
-      '***************GROUP*****************************************************************************:',
-      group,
-    );
     ctx.response.body = { statusCode: 201, status: 'created', data: group };
     ctx.response.status = 201;
   });

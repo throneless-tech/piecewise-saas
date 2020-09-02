@@ -14,12 +14,8 @@ export function up(knex) {
           .index()
           .notNullable();
         table.string('name').unique();
-        table.text('host');
-        table.text('db_host');
-        table.integer('db_port');
-        table.text('db_name');
-        table.text('db_user');
-        table.text('db_password');
+        table.text('secret');
+        table.text('redirect_uri');
         table.timestamps(true, true);
       })
       .then(() =>

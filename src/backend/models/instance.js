@@ -77,13 +77,8 @@ export default class InstanceManager {
       .select({
         id: 'instances.id',
         name: 'instances.name',
-        domain: 'instances.domain',
-        host: 'instances.host',
-        db_host: 'instances.db_host',
-        db_port: 'instances.db_port',
-        db_name: 'instances.db_name',
-        db_user: 'instances.db_user',
-        db_password: 'instances.db_password',
+        secret: 'instances.secret',
+        redirect_uri: 'instances.redirect_uri',
       })
       .from('instances')
       .modify(queryBuilder => {
