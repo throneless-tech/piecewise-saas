@@ -39,19 +39,19 @@ export default function Login(props) {
     }
   };
 
-  const processError = res => {
-    let errorString;
-    if (res.statusCode && res.error && res.message) {
-      errorString = `HTTP ${res.statusCode} ${res.error}: ${res.message}`;
-    } else if (res.statusCode && res.status) {
-      errorString = `HTTP ${res.statusCode}: ${res.status}`;
-    } else if (res.message) {
-      errorString = res.message;
-    } else {
-      errorString = 'Error in response from server.';
-    }
-    return errorString;
-  };
+  //const processError = res => {
+  //  let errorString;
+  //  if (res.statusCode && res.error && res.message) {
+  //    errorString = `HTTP ${res.statusCode} ${res.error}: ${res.message}`;
+  //  } else if (res.statusCode && res.status) {
+  //    errorString = `HTTP ${res.statusCode}: ${res.status}`;
+  //  } else if (res.message) {
+  //    errorString = res.message;
+  //  } else {
+  //    errorString = 'Error in response from server.';
+  //  }
+  //  return errorString;
+  //};
 
   const handleLogin = async () => {
     const formData = new FormData();
@@ -59,19 +59,6 @@ export default function Login(props) {
     formData.append('password', password);
     formData.append('remember', remember);
 
-    console.log('form data: ', formData);
-
-    // const json = JSON.stringify({
-    //   data: {
-    //     username: username,
-    //     password: password,
-    //     remember: remember,
-    //   },
-    // });
-    //
-    // console.log('json: ', json);
-
-    console.log('props.location.search: ', props.location.search);
     const params = new URLSearchParams(props.location.search);
     const isOauth =
       params.has('client_id') &&
@@ -83,7 +70,6 @@ export default function Login(props) {
       body: formData,
     })
       .then(res => {
-        console.log('*** RESPONSE ***:', res);
         if (res.status === 200) {
           return res.json();
         } else {
@@ -92,11 +78,12 @@ export default function Login(props) {
       })
       .catch(error => {
         setError(true);
-        setHelperText('Could not connect to authentication server.');
+        setHelperText(error.message);
         console.error('error: ', error);
       });
 
     if (results.success && isOauth) {
+      console.log('Performing OAuth2 authorization.');
       const auth = await fetch('/oauth2/authorize' + props.location.search)
         .then(res => {
           if (res.status === 200) {
@@ -107,28 +94,27 @@ export default function Login(props) {
         })
         .catch(error => {
           setError(true);
-          setHelperText('Could not authorize oauth2 request.');
+          setHelperText(error.message);
           console.error('error: ', error);
         });
-      console.log('*** AUTH RESPONSE ***:', auth);
       if (auth.data[0].authorizationCode) {
+        console.log('OAuth2 authorization succeeded.');
         window.location.href =
           auth.data[0].redirectUri + '?code=' + auth.data[0].authorizationCode;
         return;
-        //return history.push({
-        //  pathname: params.get('redirect_uri'),
-        //  state: { code: auth.data[0] },
-        //});
       } else {
+        console.log('OAuth2 authorization failed.');
         setError(true);
         setHelperText('Invalid authorization code.');
         console.error('error: ', error);
         return;
       }
     } else if (results.success && results.user.role === 1) {
+      console.log('Successfully authenticated locally.');
       setError(false);
       onAuthUpdate(true);
       setHelperText('Login successful.');
+      delete results.user.password;
       return history.push({
         pathname: '/dashboard',
         state: { user: results.user },

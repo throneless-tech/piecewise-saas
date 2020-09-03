@@ -106,7 +106,7 @@ export default function App() {
   // fetch api data
   React.useEffect(() => {
     let userStatus, instanceStatus;
-    const username = Cookies.get('mv_user');
+    const username = Cookies.get('pws_user');
     if (username) {
       // TODO: Add separate case for admin
       fetch(`api/v1/users/${username}`)
