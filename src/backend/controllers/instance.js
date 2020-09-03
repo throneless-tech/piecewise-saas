@@ -63,10 +63,12 @@ export default function controller(domain, instances, thisUser) {
         data[0].secret = uuidv4();
       }
       if (!data[0].redirect_uri) {
-        data[0].redirect_uri = `https://${data.domain}/api/v1/oauth2/callback`;
+        data[0].redirect_uri = `https://${
+          data[0].domain
+        }/api/v1/oauth2/callback`;
       }
 
-      instance = await instances.create(data);
+      instance = await instances.create(data[0]);
 
       // workaround for sqlite
       if (Number.isInteger(instance[0])) {

@@ -77,6 +77,7 @@ export default class InstanceManager {
       .select({
         id: 'instances.id',
         name: 'instances.name',
+        domain: 'instances.domain',
         secret: 'instances.secret',
         redirect_uri: 'instances.redirect_uri',
       })
