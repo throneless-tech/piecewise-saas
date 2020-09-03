@@ -9,9 +9,7 @@ const creationSchema = Joi.array()
         .required(),
       name: Joi.string().required(),
       secret: Joi.string(),
-      redirect_uri: Joi.string()
-        .uri()
-        .required(),
+      redirect_uri: Joi.string().uri(),
     }),
   )
   .min(1);
@@ -23,10 +21,8 @@ const updateSchema = Joi.array()
         .domain()
         .required(),
       name: Joi.string().required(),
-      secret: Joi.string().required(),
-      redirect_uri: Joi.string()
-        .uri()
-        .required(),
+      secret: Joi.string(),
+      redirect_uri: Joi.string().uri(),
     }).min(1),
   )
   .min(1);

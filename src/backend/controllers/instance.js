@@ -62,6 +62,10 @@ export default function controller(domain, instances, thisUser) {
       if (!data.secret) {
         data.secret = uuidv4();
       }
+      if (!data.redirect_uri) {
+        data.redirect_uri = `https://${data.domain}/api/v1/oauth2/callback`;
+      }
+
       instance = await instances.create(data);
 
       // workaround for sqlite
