@@ -197,7 +197,7 @@ export default program
     '-d, --domain <domain>',
     'Domain at which application can be reached',
     validateHost,
-    defaults.server.host,
+    defaults.server.domain,
   )
   .option(
     '-l, --log_level <level>',

@@ -59,11 +59,11 @@ export default function controller(domain, instances, thisUser) {
     }
 
     try {
-      if (!data.secret) {
-        data.secret = uuidv4();
+      if (!data[0].secret) {
+        data[0].secret = uuidv4();
       }
-      if (!data.redirect_uri) {
-        data.redirect_uri = `https://${data.domain}/api/v1/oauth2/callback`;
+      if (!data[0].redirect_uri) {
+        data[0].redirect_uri = `https://${data.domain}/api/v1/oauth2/callback`;
       }
 
       instance = await instances.create(data);
