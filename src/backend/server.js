@@ -59,7 +59,7 @@ export default function configServer(config) {
   const groups = GroupController(groupModel, auth);
   const settingModel = new Settings(db);
   const settings = SettingController(settingModel, auth);
-  const instances = InstanceController(instanceModel, auth);
+  const instances = InstanceController(config.domain, instanceModel, auth);
   instances.use('/instances/:iid', users.routes(), users.allowedMethods());
   const apiV1Router = compose([
     users.routes(),

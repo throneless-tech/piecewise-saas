@@ -8,7 +8,7 @@ const creationSchema = Joi.array()
         .domain()
         .required(),
       name: Joi.string().required(),
-      secret: Joi.string().required(),
+      secret: Joi.string(),
       redirect_uri: Joi.string()
         .uri()
         .required(),

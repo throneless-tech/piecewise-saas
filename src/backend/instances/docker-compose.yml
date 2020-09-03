@@ -18,13 +18,17 @@ services:
       PIECEWISE_DB_USER: ${PIECEWISE_DB_USER:-piecewise}
       PIECEWISE_DB_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
       PIECEWISE_DB_DATABASE: ${PIECEWISE_DB_DATABASE:-piecewise}
+      PIECEWISE_OAUTH_AUTH_URL: ${PIECEWISE_OAUTH_AUTH_URL}
+      PIECEWISE_OAUTH_TOKEN_URL: ${PIECEWISE_OAUTH_TOKEN_URL}
+      PIECEWISE_OAUTH_CLIENT_ID: ${PIECEWISE_DOMAIN}
+      PIECEWISE_OAUTH_CLIENT_SECRET: ${PIECEWISE_OAUTH_CLIENT_SECRET}
+      PIECEWISE_OAUTH_CALLBACK_URL: ${PIECEWISE_OAUTH_CALLBACK_URL}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.rule=Host(`${PIECEWISE_DOMAIN}`)"
       - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.entrypoints=websecure"
       - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.tls.certresolver=myresolver"
       - "traefik.http.services.${PIECEWISE_CONTAINER_NAME}.loadbalancer.server.port=3000"
-
 
   piecewise-db:
     container_name: ${PIECEWISE_DB_CONTAINER_NAME}

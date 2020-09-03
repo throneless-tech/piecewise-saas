@@ -181,7 +181,7 @@ export default program
   .description(process.env.npm_package_description)
   .version(process.env.npm_package_version)
   .option(
-    '-h, --host <number>',
+    '-h, --host <host>',
     'Host for the app to bind to',
     validateHost,
     defaults.server.host,
@@ -191,6 +191,12 @@ export default program
     'Port for the app to listen on',
     validatePort,
     defaults.server.port,
+  )
+  .option(
+    '-d, --domain <domain>',
+    'Domain at which application can be reached',
+    validateHost,
+    defaults.server.host,
   )
   .option(
     '-l, --log_level <level>',

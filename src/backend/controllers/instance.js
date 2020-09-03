@@ -5,6 +5,7 @@ import * as compose from 'docker-compose';
 import moment from 'moment';
 import { dir } from 'tmp-promise';
 import { promises as fs } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 import { BadRequestError } from '../../common/errors.js';
 import {
@@ -43,7 +44,7 @@ async function validate_query(query) {
 }
 
 // eslint-disable-next-line no-unused-vars
-export default function controller(instances, thisUser) {
+export default function controller(domain, instances, thisUser) {
   const router = new Router();
 
   router.post('/instances', thisUser.can('access admin pages'), async ctx => {
@@ -58,6 +59,9 @@ export default function controller(instances, thisUser) {
     }
 
     try {
+      if (!data.secret) {
+        data.secret = uuidv4();
+      }
       instance = await instances.create(data);
 
       // workaround for sqlite
@@ -69,7 +73,14 @@ export default function controller(instances, thisUser) {
       const contents = `
       PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
       PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
+      PIECEWISE_DB_PASSWORD=${uuidv4()}
       PIECEWISE_DOMAIN=${instance[0].domain}
+      PIECEWISE_OAUTH_CLIENT_SECRET=${instance[0].secret}
+      PIECEWISE_OAUTH_AUTH_URL=https://${domain}/oauth2/authorize
+      PIECEWISE_OAUTH_TOKEN_URL=https://${domain}/oauth2/token
+      PIECEWISE_OAUTH_CALLBACK_URL=https://${
+        instance[0].domain
+      }/api/v1/oauth2/callback
       `;
 
       // options for docker build
