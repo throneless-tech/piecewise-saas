@@ -77,6 +77,7 @@ export default function controller(domain, instances, thisUser) {
       const contents = `
       PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
       PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
+      PIECEWISE_DB_HOST=piecewise-${instance[0].name}-db
       PIECEWISE_DB_PASSWORD=${uuidv4()}
       PIECEWISE_DOMAIN=${instance[0].domain}
       PIECEWISE_OAUTH_CLIENT_SECRET=${instance[0].secret}
