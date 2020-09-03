@@ -92,13 +92,17 @@ export default class Oauth {
       .table('instances')
       .select('domain', 'secret', 'redirect_uri')
       .where({ domain: clientId });
-    return {
-      id: client[0].domain,
-      grants: ['authorization_code'],
-      accessTokenLifeTime: accessTokenLifeTime,
-      refreshTokenLifeTime: refreshTokenLifeTime,
-      redirectUris: [client[0].redirect_uri],
-    };
+    if (Array.isArray(client) && client.length > 0) {
+      return {
+        id: client[0].domain,
+        grants: ['authorization_code'],
+        accessTokenLifeTime: accessTokenLifeTime,
+        refreshTokenLifeTime: refreshTokenLifeTime,
+        redirectUris: [client[0].redirect_uri],
+      };
+    } else {
+      return null;
+    }
   }
 
   async getUser(username, password) {

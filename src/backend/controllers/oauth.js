@@ -36,12 +36,17 @@ export default function controller(oauth) {
     await authorize(ctx, next);
 
     if (ctx.state.oauth && ctx.state.oauth.code) {
-      ctx.response.body = {
-        statusCode: 200,
-        status: 'ok',
-        data: [ctx.state.oauth.code],
-      };
-      ctx.response.status = 200;
+      return ctx.redirect(
+        ctx.query.redirect_uri +
+          '?code=' +
+          ctx.state.oauth.code.authorizationCode,
+      );
+      //ctx.response.body = {
+      //  statusCode: 200,
+      //  status: 'ok',
+      //  data: [ctx.state.oauth.code],
+      //};
+      //ctx.response.status = 200;
     } else {
       ctx.throw(403, 'Code denied.');
     }

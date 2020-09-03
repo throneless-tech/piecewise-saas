@@ -24,7 +24,7 @@ const sessionWrapper = async (server, db) => {
       }
     }
 
-    middleware = session(server);
+    middleware = session({ key: 'pws_sess' }, server);
   } catch (err) {
     log.error('Error loading session keys: ', err);
     throw new ServerError('Error loading session keys: ', err);
