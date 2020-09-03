@@ -25,6 +25,7 @@ const defaults = {
     timeout: process.env.PIECEWISE_SAAS_DB_TIMEOUT || 0,
   },
   server: {
+    domain: process.env.PIECEWISE_SAAS_DOMAIN || 'localhost',
     host: process.env.PIECEWISE_SAAS_HOST || 'localhost',
     port: process.env.PIECEWISE_SAAS_PORT || 3000,
   },
