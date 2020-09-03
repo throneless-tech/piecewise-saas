@@ -7,7 +7,7 @@ services:
       - piecewise-private
       - piecewise-public
     command:
-      #- "--log.level=DEBUG"
+      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -37,6 +37,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PIECEWISE_SAAS_LOG_LEVEL: ${PIECEWISE_SAAS_LOG_LEVEL:-debug}
+      PIECEWISE_SAAS_DOMAIN: ${PIECEWISE_SAAS_DOMAIN:-localhost}
       PIECEWISE_SAAS_HOST: ${PIECEWISE_SAAS_HOST:-0.0.0.0}
       PIECEWISE_SAAS_PORT: ${PIECEWISE_SAAS_PORT:-3000}
       PIECEWISE_SAAS_DB_HOST: ${PIECEWISE_SAAS_DB_HOST:-piecewise-saas-db}
