@@ -23,12 +23,14 @@ export function up(knex) {
       table
         .foreign('gid')
         .references('id')
-        .inTable('groups');
+        .inTable('groups')
+        .onDelete('CASCADE');
       table.integer('uid').index();
       table
         .foreign('uid')
         .references('id')
-        .inTable('users');
+        .inTable('users')
+        .onDelete('CASCADE');
     }),
   ]);
 }

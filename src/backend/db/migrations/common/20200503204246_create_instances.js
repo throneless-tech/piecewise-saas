@@ -28,12 +28,14 @@ export function up(knex) {
       table
         .foreign('iid')
         .references('id')
-        .inTable('instances');
+        .inTable('instances')
+        .onDelete('CASCADE');
       table.integer('uid').index();
       table
         .foreign('uid')
         .references('id')
-        .inTable('users');
+        .inTable('users')
+        .onDelete('CASCADE');
     }),
   ]);
 }

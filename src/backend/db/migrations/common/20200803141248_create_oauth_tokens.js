@@ -22,12 +22,14 @@ export function up(knex) {
         table
           .foreign('client_id')
           .references('id')
-          .inTable('instances');
+          .inTable('instances')
+          .onDelete('CASCADE');
         table.integer('user_id').index();
         table
           .foreign('user_id')
           .references('id')
-          .inTable('users');
+          .inTable('users')
+          .onDelete('CASCADE');
         table.timestamps(true, true);
       })
       .then(() =>
@@ -50,12 +52,14 @@ export function up(knex) {
         table
           .foreign('client_id')
           .references('id')
-          .inTable('instances');
+          .inTable('instances')
+          .onDelete('CASCADE');
         table.integer('user_id').index();
         table
           .foreign('user_id')
           .references('id')
-          .inTable('users');
+          .inTable('users')
+          .onDelete('CASCADE');
         table.timestamps(true, true);
       })
       .then(() =>
