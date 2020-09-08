@@ -134,13 +134,14 @@ export default function configServer(config) {
     .use(flash())
     .use(mount('/static', serveStatic(STATIC_DIR)))
     .use(
-      mount('/admin', async (ctx, next) => {
+      mount('/dashboard', async (ctx, next) => {
         if (ctx.isAuthenticated()) {
           log.debug('Admin is authenticated.');
           await next();
         } else {
           log.debug('Admin is NOT authenticated.');
-          ctx.throw(401, 'Authentication failed.');
+          // ctx.throw(401, 'Authentication failed.');
+          ctx.redirect('/login');
         }
       }),
     )

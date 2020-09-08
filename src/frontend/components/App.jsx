@@ -85,9 +85,7 @@ export default function App() {
     setAuthenticated(authState);
   };
   const [user, setUser] = React.useState(null);
-  const [instance, setInstance] = React.useState(null);
   const [error, setError] = React.useState(null);
-  const [isLoaded, setIsLoaded] = React.useState(false);
 
   const processError = res => {
     let errorString;
@@ -105,7 +103,8 @@ export default function App() {
 
   // fetch api data
   React.useEffect(() => {
-    let userStatus, instanceStatus;
+    let isMounted = true;
+    let userStatus;
     const username = Cookies.get('pws_user');
     if (username) {
       // TODO: Add separate case for admin
@@ -114,46 +113,33 @@ export default function App() {
           userStatus = usersResponse.status;
           return usersResponse.json();
         })
-        .then(users => {
-          if (userStatus === 200) {
-            setUser(users.data[0]);
-            setAuthenticated(true);
-            return users.data[0];
-          } else {
-            const error = processError(users);
-            throw new Error(error);
+        .then(user => {
+          if (isMounted) {
+            if (userStatus === 200) {
+              setAuthenticated(true);
+              return setUser(user.role);
+            } else {
+              const error = processError(user);
+              throw new Error(error);
+            }
           }
+          return;
         })
-        .then(user => fetch(`/api/v1/instances?of_user=${user.id}`))
-        .then(instancesResponse => {
-          instanceStatus = instancesResponse.status;
-          return instancesResponse.json();
-        })
-        .then(instances => {
-          if (instanceStatus === 200) {
-            setInstance(instances.data[0]);
-            setIsLoaded(true);
-            return instances.data[0];
-          } else {
-            const error = processError(instances);
-            throw new Error(error);
-          }
-        })
-        .catch(err => {
-          setError(err);
-          console.error(err);
-          setIsLoaded(true);
+        .catch(error => {
+          setError(error);
+          console.error(error.name + error.message);
+          // setIsLoaded(true);
         });
+      return () => {
+        isMounted = false;
+      };
     } else {
       setAuthenticated(false);
-      setIsLoaded(true);
     }
   }, [authenticated]);
 
   if (error) {
     return <div>Error: {error}</div>;
-  } else if (!isLoaded) {
-    return <div>Loading...</div>;
   } else {
     return (
       <Container className={classes.container}>
@@ -172,7 +158,6 @@ export default function App() {
                 path="/dashboard"
                 component={Dashboard}
                 user={user}
-                instance={instance}
               />
             </LazyBoundary>
             <Redirect to="/" />

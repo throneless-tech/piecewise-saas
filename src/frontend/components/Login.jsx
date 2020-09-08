@@ -101,6 +101,10 @@ export default function Login(props) {
         console.log('OAuth2 authorization succeeded.');
         window.location.href =
           auth.data[0].redirectUri + '?code=' + auth.data[0].authorizationCode;
+        history.push({
+          pathname: '/dashboard',
+          state: { user: auth.data[0] },
+        });
         return;
       } else {
         console.log('OAuth2 authorization failed.');
