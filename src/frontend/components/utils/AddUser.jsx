@@ -187,7 +187,7 @@ export default function AddUser(props) {
         if (status === 201) {
           alert('User submitted successfully.');
           onClose(
-            { ...toSubmit, instance: instance.domain, role: role.name },
+            { ...toSubmit, instance: instance.name, role: role.name },
             result.data[0].id,
           );
           return;
@@ -355,7 +355,9 @@ export default function AddUser(props) {
               <Autocomplete
                 id="instance-select"
                 options={instances}
-                getOptionLabel={option => option.domain}
+                getOptionLabel={option =>
+                  option.name ? option.name : 'Unnamed'
+                }
                 getOptionSelected={(option, value) => option.domain === value}
                 onChange={handleInstanceChange}
                 renderInput={params => (
