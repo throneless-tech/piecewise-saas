@@ -287,7 +287,6 @@ export default function EnhancedTable(props) {
       })
       .then(users => {
         if (status === 200) {
-          console.log('users: ', users.data);
           setRows(users.data);
           emptyRows =
             rowsPerPage -
@@ -356,9 +355,7 @@ export default function EnhancedTable(props) {
                             {formatName(row.firstName, row.lastName)}
                           </TableCell>
                           <TableCell>
-                            {row.instance_name
-                              ? row.instance_name
-                              : row.instance}
+                            {row.instance_name ? row.instance_name : 'Unnamed'}
                           </TableCell>
                           <TableCell>{row.email}</TableCell>
                           <TableCell>
