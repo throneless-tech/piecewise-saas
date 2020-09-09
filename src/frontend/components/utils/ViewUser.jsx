@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
+import Cookies from 'js-cookie';
 
 // material ui imports
 import Box from '@material-ui/core/Box';
@@ -18,6 +19,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
 // modules imports
+import EditSelf from '../utils/EditSelf.jsx';
 import EditUser from '../utils/EditUser.jsx';
 
 const useStyles = makeStyles(() => ({
@@ -102,10 +104,36 @@ export default function ViewUser(props) {
   };
 
   // handle edit user
-  const isAdmin = user => {
-    if (user.role_name != 'admins') {
-      return null;
-    } else {
+  const isUser = user => {
+    if (user.username === Cookies.get('pws_user') && user.username === row.username) {
+      return (
+        <Grid container item xs={12} sm={4} justify="flex-start">
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
+              onClick={handleClickOpenEdit}
+              className={classes.editButton}
+            >
+              Edit
+            </Button>
+            <EditSelf row={user} open={openEdit} onClose={handleCloseEdit} />
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
+              onClick={() => handleDelete(row)}
+              className={classes.editButton}
+            >
+              <DeleteIcon />
+            </Button>
+          </Grid>
+        </Grid>
+      );
+    } else if (user.role_name === 'admins') {
       return (
         <Grid container item xs={12} sm={4} justify="flex-start">
           <Grid item>
@@ -133,13 +161,15 @@ export default function ViewUser(props) {
           </Grid>
         </Grid>
       );
+    } else {
+      return null;
     }
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this instance?')) {
       let status;
-      fetch(`api/v1/instances/${row.id}`, {
+      fetch(`api/v1/users/${row.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +256,7 @@ export default function ViewUser(props) {
             <div className={classes.dialogTitleText}>View User</div>
           </DialogTitle>
         </Grid>
-        {isAdmin(user)}
+        {isUser(user)}
       </Grid>
       <Box className={classes.box}>
         <Typography component="p" variant="subtitle2" gutterBottom>

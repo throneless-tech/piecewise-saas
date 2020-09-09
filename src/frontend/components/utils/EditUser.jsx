@@ -270,6 +270,18 @@ export default function EditUser(props) {
             value={inputs.email}
             required
           />
+          <TextField
+            className={classes.formField}
+            id="user-password"
+            label="Password"
+            name="password"
+            fullWidth
+            type="password"
+            variant="outlined"
+            defaultValue={row.password}
+            onChange={handleInputChange}
+            value={inputs.password}
+          />
           <FormControl variant="outlined" className={classes.formControl}>
             <Autocomplete
               id="instance-select"
