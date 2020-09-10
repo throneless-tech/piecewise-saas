@@ -86,6 +86,10 @@ export default function AddUser(props) {
   const [helperText, setHelperText] = React.useState({
     username: '',
   });
+  const [role, setRole] = React.useState('');
+  const [roleName, setRoleName] = React.useState('');
+  const [instance, setInstance] = React.useState('');
+  const [instanceName, setInstanceName] = React.useState('');
 
   // handle form validation
   const validateInputs = inputs => {
@@ -150,15 +154,15 @@ export default function AddUser(props) {
   };
 
   // handles value changes for Autocomplete Mui components
-  const [role, setRole] = React.useState(null);
-  const [instance, setInstance] = React.useState('N/A');
 
   const handleRoleChange = (event, values) => {
-    setRole(values);
+    setRole(values.id);
+    setRoleName(values.name);
   };
 
   const handleInstanceChange = (event, values) => {
-    setInstance(values);
+    setInstance(values.id);
+    setInstanceName(values.name);
   };
 
   // submit new user to api
@@ -168,8 +172,8 @@ export default function AddUser(props) {
     // combining inputs with the instance and role values from the autocomplete component
     const toSubmit = {
       ...inputs,
-      // instance: instance.id,
-      role: role.id,
+      instance: instance,
+      role: role,
     };
 
     fetch(`api/v1/users`, {
@@ -187,7 +191,7 @@ export default function AddUser(props) {
         if (status === 201) {
           alert('User submitted successfully.');
           onClose(
-            { ...toSubmit, instance: instance.name, role: role.name },
+            { ...toSubmit, instance_name: instanceName, role_name: roleName },
             result.data[0].id,
           );
           return;
