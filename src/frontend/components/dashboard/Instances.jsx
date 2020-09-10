@@ -130,7 +130,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 const EnhancedTableToolbar = props => {
   const classes = useToolbarStyles();
-  const { updateRows, instance } = props;
+  const { userRole, updateRows } = props;
 
   // handle add instance
   const [open, setOpen] = React.useState(false);
@@ -147,28 +147,38 @@ const EnhancedTableToolbar = props => {
     setOpen(false);
   };
 
-  return (
-    <Toolbar className={clsx(classes.root)}>
-      <Grid container spacing={2} alignItems="center" justify="flex-start">
-        <Grid item>
-          <Typography component="h2" variant="h3">
-            Instances
-          </Typography>
+  if (userRole === 'admins') {
+    return (
+      <Toolbar className={clsx(classes.root)}>
+        <Grid container spacing={2} alignItems="center" justify="flex-start">
+          <Grid item>
+            <Typography component="h2" variant="h3">
+              Instances
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
+              onClick={handleClickOpen}
+            >
+              Add
+            </Button>
+            <AddInstance open={open} onClose={handleClose} />
+          </Grid>
         </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            disableElevation
-            color="primary"
-            onClick={handleClickOpen}
-          >
-            Add
-          </Button>
-          <AddInstance open={open} onClose={handleClose} />
-        </Grid>
-      </Grid>
-    </Toolbar>
-  );
+      </Toolbar>
+    );
+  } else {
+    return (
+      <Toolbar className={clsx(classes.root)}>
+        <Typography component="h2" variant="h3">
+          Instances
+        </Typography>
+      </Toolbar>
+    );
+  }
 };
 
 EnhancedTableToolbar.propTypes = {
@@ -305,7 +315,11 @@ export default function EnhancedTable(props) {
     return (
       <Suspense fallback={<Loading />}>
         <div className={classes.root}>
-          <EnhancedTableToolbar updateRows={addData} instance={instance} />
+          <EnhancedTableToolbar
+            updateRows={addData}
+            instance={instance}
+            userRole={user.role_name}
+          />
           <TableContainer>
             <Table
               className={classes.table}

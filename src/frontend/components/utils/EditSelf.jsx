@@ -220,7 +220,7 @@ export default function EditSelf(props) {
           <ClearIcon />
         </Button>
         <DialogTitle id="edit-user-title" className={classes.dialogTitleRoot}>
-          <div className={classes.dialogTitleText}>Edit User!!!!</div>
+          <div className={classes.dialogTitleText}>Edit User</div>
         </DialogTitle>
         <Box className={classes.form}>
           <TextField

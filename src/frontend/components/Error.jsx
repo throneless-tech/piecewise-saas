@@ -5,7 +5,7 @@ import AlertTitle from '@material-ui/lab/AlertTitle';
 
 const Error = ({ error, componentStack, resetErrorBoundary }) => {
   return (
-    <Alert severity="error" onClose={resetErrorBoundary} dismissable>
+    <Alert severity="error" onClose={resetErrorBoundary} dismissable="true">
       <AlertTitle>Something went wrong:</AlertTitle>
       <pre>{error.message}</pre>
       <pre>{componentStack}</pre>

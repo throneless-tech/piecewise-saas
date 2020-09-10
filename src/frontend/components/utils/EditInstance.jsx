@@ -111,7 +111,6 @@ export default function EditInstance(props) {
     if (!row.name || !row.domain) {
       if (!inputs.name || !inputs.domain) {
         if (!inputs.name && !row.name) {
-          console.log('no domain');
           setErrors(errors => ({
             ...errors,
             name: true,
@@ -162,7 +161,6 @@ export default function EditInstance(props) {
       })
       .then(results => {
         if (status === 200 || status === 201 || status === 204) {
-          console.log('results: ', results);
           onClose(results.data[0]);
           alert('Instance edited successfully.');
         }

@@ -47,7 +47,7 @@ const useStyles = makeStyles(() => ({
   },
   dialogTitleText: {
     fontSize: '2.25rem',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   editButton: {
     margin: '15px',
@@ -105,7 +105,10 @@ export default function ViewUser(props) {
 
   // handle edit user
   const isUser = user => {
-    if (user.username === Cookies.get('pws_user') && user.username === row.username) {
+    if (
+      user.username === Cookies.get('pws_user') &&
+      user.username === row.username
+    ) {
       return (
         <Grid container item xs={12} sm={4} justify="flex-start">
           <Grid item>
@@ -119,17 +122,6 @@ export default function ViewUser(props) {
               Edit
             </Button>
             <EditSelf row={user} open={openEdit} onClose={handleCloseEdit} />
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              disableElevation
-              color="primary"
-              onClick={() => handleDelete(row)}
-              className={classes.editButton}
-            >
-              <DeleteIcon />
-            </Button>
           </Grid>
         </Grid>
       );
