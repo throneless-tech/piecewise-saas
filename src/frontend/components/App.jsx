@@ -172,7 +172,6 @@ export default function App() {
                 path="/dashboard"
                 component={Dashboard}
                 user={user}
-                instance={instance}
               />
             </LazyBoundary>
             <Redirect to="/" />
