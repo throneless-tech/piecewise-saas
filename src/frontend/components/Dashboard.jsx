@@ -121,16 +121,16 @@ export default function Dashboard(props) {
                   {user.role_name}
                 </p>
               </Box>
-              <Box ml={1}>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  href="/api/v1/logout"
-                >
-                  Log out
-                </Button>
-              </Box>
             </IconButton>
+            <Box ml={1}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                href="/api/v1/logout"
+              >
+                Log out
+              </Button>
+            </Box>
           </div>
         </Toolbar>
       </AppBar>

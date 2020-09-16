@@ -170,11 +170,7 @@ const EnhancedTableToolbar = props => {
             >
               Add
             </Button>
-            <AddUser
-              open={open}
-              onClose={handleClose}
-              user={user}
-            />
+            <AddUser open={open} onClose={handleClose} user={user} />
           </Grid>
         </Grid>
       </Toolbar>
@@ -358,9 +354,7 @@ export default function EnhancedTable(props) {
                             {formatName(row.firstName, row.lastName)}
                           </TableCell>
                           <TableCell>
-                            {row.instance_name
-                              ? row.instance_name
-                              : row.instance}
+                            {row.instance_name ? row.instance_name : 'Unnamed'}
                           </TableCell>
                           <TableCell>{row.email}</TableCell>
                           <TableCell>

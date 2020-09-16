@@ -84,10 +84,14 @@ export default function Login(props) {
 
     if (results.success && isOauth) {
       console.log('Performing OAuth2 authorization.');
-      const auth = await fetch('/oauth2/authorize' + props.location.search)
+      await fetch('/oauth2/authorize' + props.location.search, {
+        redirect: 'manual',
+      })
         .then(res => {
-          if (res.status === 200) {
-            return res.json();
+          if (res.type === 'opaqueredirect') {
+            console.log('Redirecting.');
+            window.location.href = res.url;
+            return;
           } else {
             throw new Error('Failed to login.');
           }
@@ -97,18 +101,6 @@ export default function Login(props) {
           setHelperText(error.message);
           console.error('error: ', error);
         });
-      if (auth.data[0].authorizationCode) {
-        console.log('OAuth2 authorization succeeded.');
-        window.location.href =
-          auth.data[0].redirectUri + '?code=' + auth.data[0].authorizationCode;
-        return;
-      } else {
-        console.log('OAuth2 authorization failed.');
-        setError(true);
-        setHelperText('Invalid authorization code.');
-        console.error('error: ', error);
-        return;
-      }
     } else if (results.success) {
       console.log('Successfully authenticated locally.');
       setError(false);

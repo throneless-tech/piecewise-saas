@@ -286,7 +286,7 @@ export default function EditUser(props) {
             <Autocomplete
               id="instance-select"
               options={instances}
-              getOptionLabel={option => option.name}
+              getOptionLabel={option => (option.name ? option.name : 'Unnamed')}
               getOptionSelected={(option, value) => option.name === value}
               defaultValue={instances.find(
                 instance => instance.id === row.instance,
