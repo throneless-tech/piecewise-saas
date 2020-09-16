@@ -149,19 +149,26 @@ export default class Oauth {
         .select('id', 'domain', 'name', 'secret', 'redirect_uri')
         .where({ domain: client.id });
       const users = await this._db
-        .table('users')
-        .select(
-          'id',
-          'username',
-          'firstName',
-          'lastName',
-          'email',
-          'phone',
-          'extension',
-          'role',
-          'isActive',
-        )
-        .where({ id: user.id });
+        .select({
+          id: 'users.id',
+          username: 'users.username',
+          firstName: 'users.firstName',
+          lastName: 'users.lastName',
+          instance: 'instances.id',
+          instance_name: 'instances.name',
+          role: 'groups.id',
+          role_name: 'groups.name',
+          email: 'users.email',
+          phone: 'users.phone',
+          extension: 'users.extension',
+          isActive: 'users.isActive',
+        })
+        .from('users')
+        .leftJoin('instance_users', 'users.id', 'instance_users.uid')
+        .leftJoin('instances', 'instances.id', 'instance_users.iid')
+        .leftJoin('user_groups', 'users.id', 'user_groups.uid')
+        .leftJoin('groups', 'groups.id', 'user_groups.gid')
+        .where({ 'users.id': parseInt(user.id) });
       const query = {
         access_token: token.accessToken,
         access_token_expires_at: token.accessTokenExpiresAt.toISOString(),
@@ -193,6 +200,28 @@ export default class Oauth {
     } catch (err) {
       throw new BadRequestError('Failed to save token: ', err);
     }
+  }
+
+  async validateScope(user, client, scope) {
+    log.debug(
+      'OAuth2: validateScope() for user : client : scope',
+      user,
+      ':',
+      client,
+      ':',
+      scope,
+    );
+    // TODO: These parameters should obviously be handled consistently across flows
+    if (
+      client.id !== user.instanceDomain &&
+      client.id !== user[0].instance_domain &&
+      user.roleName !== 'admins' &&
+      user[0].role_name !== 'admins'
+    ) {
+      log.warn('User not authorized for this instance.');
+      return false;
+    }
+    return ['auth'];
   }
 
   async saveAuthorizationCode(code, client, user) {
