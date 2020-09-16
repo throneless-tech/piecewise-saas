@@ -279,7 +279,6 @@ export default function EnhancedTable(props) {
 
   React.useEffect(() => {
     let status;
-
     fetch('/api/v1/users')
       .then(res => {
         status = res.status;

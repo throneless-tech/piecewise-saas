@@ -59,7 +59,7 @@ export default function controller(groups, thisUser) {
     ctx.response.status = 201;
   });
 
-  router.get('/groups', thisUser.can('access admin pages'), async ctx => {
+  router.get('/groups', thisUser.can('access private pages'), async ctx => {
     log.debug(`Retrieving groups.`);
     let res;
 

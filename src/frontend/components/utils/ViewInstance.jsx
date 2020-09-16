@@ -45,7 +45,7 @@ const useStyles = makeStyles(() => ({
   },
   dialogTitleText: {
     fontSize: '2.25rem',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   editButton: {
     margin: '15px',
@@ -223,7 +223,7 @@ export default function ViewInstance(props) {
         }
       />
       <Grid container alignItems="center" justify="flex-end">
-        <Grid item xs={12} sm={8}>
+        <Grid item xs={12} sm={7}>
           <DialogTitle
             id="view-instance-title"
             className={classes.dialogTitleRoot}

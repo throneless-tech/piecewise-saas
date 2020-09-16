@@ -101,7 +101,7 @@ export default function Login(props) {
           setHelperText(error.message);
           console.error('error: ', error);
         });
-    } else if (results.success && results.user.role === 1) {
+    } else if (results.success) {
       console.log('Successfully authenticated locally.');
       setError(false);
       onAuthUpdate(true);
