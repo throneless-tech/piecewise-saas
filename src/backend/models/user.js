@@ -181,13 +181,12 @@ export default class User {
     return this._db.transaction(async trx => {
       const query = {
         username: user.username,
-        oldPassword: user.oldPassword,
-        newPassword: user.newPassword,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         phone: user.phone,
         extension: user.extension,
+        isActive: user.isActive,
       };
 
       if (user.instance) {
@@ -230,8 +229,12 @@ export default class User {
 
       try {
         if (user.oldPassword && user.newPassword) {
-          const record = await this.findById(id, true);
-          if (!comparePass(user.oldPassword, record[0].password)) {
+          //const record = await this.findById(id, true);
+          const record = await trx('users')
+            .select('*')
+            .where({ id: parseInt(id) })
+            .first();
+          if (!comparePass(user.oldPassword, record.password)) {
             throw new Error('Authentication failed.');
           }
           const salt = bcrypt.genSaltSync();
@@ -243,10 +246,6 @@ export default class User {
       }
 
       if (!_.isEmpty(user)) {
-        if (user.password) {
-          const salt = bcrypt.genSaltSync();
-          query.password = bcrypt.hashSync(user.password, salt);
-        }
         return await trx('users')
           .where({ id: parseInt(id) })
           .update(query, [
