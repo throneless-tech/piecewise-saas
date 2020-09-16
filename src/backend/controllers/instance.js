@@ -255,16 +255,79 @@ export default function controller(domain, instances, thisUser) {
     thisUser.can('access admin pages'),
     async ctx => {
       log.debug(`Deleting instance ${ctx.params.id}.`);
-      let instance;
+      let instance, composeOptions, cleanupCb, tmpDir;
 
       try {
-        instance = await instances.delete(ctx.params.id);
+        instance = await instances.findById(ctx.params.id);
       } catch (err) {
         log.error('HTTP 400 Error: ', err);
         ctx.throw(400, `Failed to parse query: ${err}`);
       }
 
-      if (instance > 0) {
+      if (Array.isArray(instance) && instance.length > 0) {
+        try {
+          // create custom variables for env file
+          const contents = `
+            PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
+            PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
+            PIECEWISE_DB_HOST=piecewise-${instance[0].name}-db
+            PIECEWISE_DB_PASSWORD=${uuidv4()}
+            PIECEWISE_DOMAIN=${instance[0].domain}
+            PIECEWISE_OAUTH_CLIENT_SECRET=${instance[0].secret}
+            PIECEWISE_OAUTH_AUTH_URL=https://${domain}/oauth2/authorize
+            PIECEWISE_OAUTH_TOKEN_URL=https://${domain}/oauth2/token
+            PIECEWISE_OAUTH_CALLBACK_URL=https://${
+              instance[0].domain
+            }/api/v1/oauth2/callback
+            `;
+
+          // options for docker build
+          composeOptions = [
+            ['--project-name', `Piecewise_${instance[0].name}`],
+          ];
+
+          const { path: tmp, cleanup } = await dir({
+            prefix: 'piecewise-',
+            unsafeCleanup: true,
+          });
+          tmpDir = tmp;
+          cleanupCb = cleanup;
+          log.debug('Creating temporary directory: ', tmpDir);
+          // create custom  env vars file
+          await fs.writeFile(path.join(tmpDir, '.env'), contents);
+          await fs.copyFile(
+            path.join(
+              __dirname,
+              './src/backend/instances',
+              'docker-compose.yml',
+            ),
+            path.join(tmpDir, 'docker-compose.yml'),
+          );
+        } catch (err) {
+          log.error('HTTP 500 Error: ', err);
+          ctx.throw(500, `Failed to setup docker-compose environment: ${err}`);
+        }
+
+        // docker-compose up
+        compose
+          .down({
+            cwd: tmpDir,
+            log: true,
+            composeOptions: composeOptions,
+            commandOptions: ['--volumes'],
+          })
+          .then(() => cleanupCb())
+          .catch(err => {
+            log.error('HTTP 500 Error: ', err);
+            ctx.throw(500, `Failed to cleanly run docker-compose: ${err}`);
+          });
+
+        try {
+          instance = await instances.delete(ctx.params.id);
+        } catch (err) {
+          log.error('HTTP 500 Error: ', err);
+          ctx.throw(500, `Failed to remove instance from database: ${err}`);
+        }
         ctx.response.body = { statusCode: 200, status: 'ok', data: instance };
         ctx.response.status = 200;
       } else {
