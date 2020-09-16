@@ -41,12 +41,6 @@ export default function controller(oauth) {
           '?code=' +
           ctx.state.oauth.code.authorizationCode,
       );
-      //ctx.response.body = {
-      //  statusCode: 200,
-      //  status: 'ok',
-      //  data: [ctx.state.oauth.code],
-      //};
-      //ctx.response.status = 200;
     } else {
       ctx.throw(403, 'Code denied.');
     }
