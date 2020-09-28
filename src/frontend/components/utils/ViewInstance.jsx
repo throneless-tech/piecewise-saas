@@ -154,6 +154,7 @@ export default function ViewInstance(props) {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this instance?')) {
+      console.log('*** ROW ***:', row);
       let status;
       fetch(`api/v1/instances/${row.id}`, {
         method: 'DELETE',
