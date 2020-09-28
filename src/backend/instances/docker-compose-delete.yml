@@ -1,0 +1,42 @@
+version: "3.5"
+services:
+  piecewise:
+    image: measurementlab/piecewise:latest
+    container_name: ${PIECEWISE_CONTAINER_NAME}
+    depends_on:
+      - piecewise-db
+    environment:
+      NODE_ENV: production
+      PIECEWISE_LOG_LEVEL: ${PIECEWISE_LOG_LEVEL:-debug}
+      PIECEWISE_HOST: ${PIECEWISE_HOST:-0.0.0.0}
+      PIECEWISE_PORT: ${PIECEWISE_PORT:-3000}
+      PIECEWISE_DB_HOST: ${PIECEWISE_DB_HOST:-piecewise-db}
+      PIECEWISE_DB_PORT: ${PIECEWISE_DB_PORT:-5432}
+      PIECEWISE_DB_USER: ${PIECEWISE_DB_USER:-piecewise}
+      PIECEWISE_DB_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
+      PIECEWISE_DB_DATABASE: ${PIECEWISE_DB_DATABASE:-piecewise}
+      PIECEWISE_OAUTH_AUTH_URL: ${PIECEWISE_OAUTH_AUTH_URL}
+      PIECEWISE_OAUTH_TOKEN_URL: ${PIECEWISE_OAUTH_TOKEN_URL}
+      PIECEWISE_OAUTH_CLIENT_ID: ${PIECEWISE_DOMAIN}
+      PIECEWISE_OAUTH_CLIENT_SECRET: ${PIECEWISE_OAUTH_CLIENT_SECRET}
+      PIECEWISE_OAUTH_CALLBACK_URL: ${PIECEWISE_OAUTH_CALLBACK_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.rule=Host(`${PIECEWISE_DOMAIN}`)"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${PIECEWISE_CONTAINER_NAME}.tls.certresolver=myresolver"
+      - "traefik.http.services.${PIECEWISE_CONTAINER_NAME}.loadbalancer.server.port=3000"
+
+  piecewise-db:
+    container_name: ${PIECEWISE_DB_CONTAINER_NAME}
+    image: postgres:12-alpine
+    volumes:
+      - piecewise-db_data:/var/lib/postgresql/data
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: ${PIECEWISE_DB_USER:-piecewise}
+      POSTGRES_PASSWORD: ${PIECEWISE_DB_PASSWORD:-piecewise}
+      POSTGRES_DB: ${PIECEWISE_DB_DATABASE:-piecewise}
+
+volumes:
+  piecewise-db_data: {}
