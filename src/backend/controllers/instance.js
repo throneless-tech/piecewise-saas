@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { BadRequestError } from '../../common/errors.js';
 import {
   validateCreation,
-  validateUpdate,
+  //  validateUpdate,
 } from '../../common/schemas/instance.js';
 import { getLogger } from '../log.js';
 
@@ -37,6 +37,19 @@ const query_schema = Joi.object({
 async function validate_query(query) {
   try {
     const value = await query_schema.validateAsync(query);
+    return value;
+  } catch (err) {
+    throw new BadRequestError('Unable to validate query: ', err);
+  }
+}
+
+const upgrade_schema = Joi.object({
+  pull: Joi.boolean(),
+});
+
+async function validate_upgrade(query) {
+  try {
+    const value = await upgrade_schema.validateAsync(query);
     return value;
   } catch (err) {
     throw new BadRequestError('Unable to validate query: ', err);
@@ -80,7 +93,7 @@ export default function controller(domain, instances, thisUser) {
       PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
       PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
       PIECEWISE_DB_HOST=piecewise-${instance[0].name}-db
-      PIECEWISE_DB_PASSWORD=${uuidv4()}
+      PIECEWISE_DB_PASSWORD=${instance[0].secret}
       PIECEWISE_DOMAIN=${instance[0].domain}
       PIECEWISE_OAUTH_CLIENT_SECRET=${instance[0].secret}
       PIECEWISE_OAUTH_AUTH_URL=https://${domain}/oauth2/authorize
@@ -103,7 +116,11 @@ export default function controller(domain, instances, thisUser) {
       // create custom  env vars file
       await fs.writeFile(path.join(tmpDir, '.env'), contents);
       await fs.copyFile(
-        path.join(__dirname, './src/backend/instances', 'docker-compose.yml'),
+        path.join(
+          __dirname,
+          './src/backend/instances',
+          'docker-compose-create.yml',
+        ),
         path.join(tmpDir, 'docker-compose.yml'),
       );
     } catch (err) {
@@ -112,13 +129,41 @@ export default function controller(domain, instances, thisUser) {
     }
 
     // docker-compose up
+    log.info('Creating containers');
     compose
       .upAll({
         cwd: tmpDir,
         log: true,
         composeOptions: composeOptions,
       })
-      .then(() => cleanupCb())
+      .then(() => {
+        log.debug('Running database migrations');
+        return compose.exec(
+          'piecewise',
+          './docker-entrypoint.sh db:migrations',
+          {
+            cwd: tmpDir,
+            log: true,
+            composeOptions: composeOptions,
+          },
+        );
+      })
+      .then(() => {
+        log.debug('Running database seeds');
+        return compose.exec('piecewise', './docker-entrypoint.sh db:seeds', {
+          cwd: tmpDir,
+          log: true,
+          composeOptions: composeOptions,
+        });
+      })
+      .then(() => {
+        log.debug('Cleaning up temporary files');
+        return cleanupCb();
+      })
+      .then(() => {
+        log.info('Creation complete!');
+        return;
+      })
       .catch(err => {
         log.error('HTTP 500 Error: ', err);
         ctx.throw(500, `Failed to cleanly run docker-compose: ${err}`);
@@ -126,6 +171,116 @@ export default function controller(domain, instances, thisUser) {
     ctx.response.body = { statusCode: 201, status: 'created', data: instance };
     ctx.response.status = 201;
   });
+
+  router.put(
+    '/instances/:id',
+    thisUser.can('access admin pages'),
+    async ctx => {
+      log.debug('Updating instance.');
+      let composeOptions, cleanupCb, tmpDir;
+
+      const instance = await instances.findById(ctx.params.id);
+      if (!Array.isArray(instance) || instance.length < 1) {
+        ctx.throw(404, 'Instance not found.');
+      }
+
+      try {
+        // create custom variables for env file
+        const contents = `
+      PIECEWISE_CONTAINER_NAME=piecewise-${instance[0].name}
+      PIECEWISE_DB_CONTAINER_NAME=piecewise-${instance[0].name}-db
+      PIECEWISE_DB_HOST=piecewise-${instance[0].name}-db
+      PIECEWISE_DB_PASSWORD=${instance[0].secret}
+      PIECEWISE_DOMAIN=${instance[0].domain}
+      PIECEWISE_OAUTH_CLIENT_SECRET=${instance[0].secret}
+      PIECEWISE_OAUTH_AUTH_URL=https://${domain}/oauth2/authorize
+      PIECEWISE_OAUTH_TOKEN_URL=https://${domain}/oauth2/token
+      PIECEWISE_OAUTH_CALLBACK_URL=https://${
+        instance[0].domain
+      }/api/v1/oauth2/callback
+      `;
+
+        // options for docker build
+        composeOptions = [['--project-name', `Piecewise_${instance[0].name}`]];
+
+        const { path: tmp, cleanup } = await dir({
+          prefix: 'piecewise-',
+          unsafeCleanup: true,
+        });
+        tmpDir = tmp;
+        cleanupCb = cleanup;
+        log.debug('Creating temporary directory: ', tmpDir);
+        // create custom  env vars file
+        await fs.writeFile(path.join(tmpDir, '.env'), contents);
+        await fs.copyFile(
+          path.join(
+            __dirname,
+            './src/backend/instances',
+            'docker-compose-create.yml',
+          ),
+          path.join(tmpDir, 'docker-compose.yml'),
+        );
+      } catch (err) {
+        log.error('HTTP 500 Error: ', err);
+        ctx.throw(500, `Failed to setup docker-compose environment: ${err}`);
+      }
+
+      // docker-compose up
+      const query = validate_upgrade(ctx.query);
+      const run = Promise.resolve();
+      if (query.pull) {
+        // eslint-disable-next-line promise/catch-or-return
+        run.then(() => {
+          log.debug('Pulling new images');
+          return compose.pullAll({
+            cwd: tmpDir,
+            log: true,
+            composeOptions: composeOptions,
+          });
+        });
+      }
+      run
+        .then(() => {
+          log.debug('Updating containers');
+          return compose.upAll({
+            cwd: tmpDir,
+            log: true,
+            composeOptions: composeOptions,
+          });
+        })
+        .then(() => {
+          log.debug('Running database migrations');
+          return compose.exec(
+            'piecewise',
+            './docker-entrypoint.sh db:migrations',
+            {
+              cwd: tmpDir,
+              log: true,
+              composeOptions: composeOptions,
+            },
+          );
+        })
+        .then(() => {
+          log.debug('Cleaning up temporary files');
+          return cleanupCb();
+        })
+        .then(() => {
+          log.debug('Upgrade complete!');
+          return;
+        })
+        .catch(err => {
+          log.error('HTTP 500 Error: ', err);
+          ctx.throw(500, `Failed to cleanly run docker-compose: ${err}`);
+        });
+
+      ctx.response.body = {
+        statusCode: 200,
+        status: 'ok',
+        data: instance,
+      };
+      ctx.response.status = 200;
+    },
+  );
 
   router.get('/instances', thisUser.can('access private pages'), async ctx => {
     log.debug(`Retrieving instances.`);
@@ -218,37 +373,37 @@ export default function controller(domain, instances, thisUser) {
     },
   );
 
-  router.put(
-    '/instances/:id',
-    thisUser.can('access admin pages'),
-    async ctx => {
-      log.debug(`Updating instance ${ctx.params.id}.`);
-      let updated;
-
-      try {
-        const data = await validateUpdate(ctx.request.body.data);
-        updated = await instances.update(ctx.params.id, data);
-      } catch (err) {
-        log.error('HTTP 400 Error: ', err);
-        ctx.throw(400, `Failed to parse query: ${err}`);
-      }
-      if (updated) {
-        const instance = await instances.findById(ctx.params.id);
-        ctx.response.body = {
-          statusCode: 204,
-          status: 'update',
-          data: instance,
-        };
-      } else {
-        ctx.response.body = {
-          statusCode: 201,
-          status: 'created',
-          data: { id: ctx.params.id },
-        };
-        ctx.response.status = 201;
-      }
-    },
-  );
+  //  router.put(
+  //    '/instances/:id',
+  //    thisUser.can('access admin pages'),
+  //    async ctx => {
+  //      log.debug(`Updating instance ${ctx.params.id}.`);
+  //      let updated;
+  //
+  //      try {
+  //        const data = await validateUpdate(ctx.request.body.data);
+  //        updated = await instances.update(ctx.params.id, data);
+  //      } catch (err) {
+  //        log.error('HTTP 400 Error: ', err);
+  //        ctx.throw(400, `Failed to parse query: ${err}`);
+  //      }
+  //      if (updated) {
+  //        const instance = await instances.findById(ctx.params.id);
+  //        ctx.response.body = {
+  //          statusCode: 204,
+  //          status: 'update',
+  //          data: instance,
+  //        };
+  //      } else {
+  //        ctx.response.body = {
+  //          statusCode: 201,
+  //          status: 'created',
+  //          data: { id: ctx.params.id },
+  //        };
+  //        ctx.response.status = 201;
+  //      }
+  //    },
+  //  );
 
   router.delete(
     '/instances/:id',
@@ -299,7 +454,7 @@ export default function controller(domain, instances, thisUser) {
             path.join(
               __dirname,
               './src/backend/instances',
-              'docker-compose.yml',
+              'docker-compose-delete.yml',
             ),
             path.join(tmpDir, 'docker-compose.yml'),
           );

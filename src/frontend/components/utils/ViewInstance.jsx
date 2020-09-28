@@ -14,6 +14,7 @@ import Typography from '@material-ui/core/Typography';
 
 // icons imports
 import DeleteIcon from '@material-ui/icons/Delete';
+import UpdateIcon from '@material-ui/icons/Update';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
@@ -115,6 +116,17 @@ export default function ViewInstance(props) {
               variant="contained"
               disableElevation
               color="primary"
+              onClick={() => handleUpdate(row)}
+              className={classes.editButton}
+            >
+              <UpdateIcon />
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              disableElevation
+              color="primary"
               onClick={() => handleDelete(row)}
               className={classes.editButton}
             >
@@ -143,6 +155,38 @@ export default function ViewInstance(props) {
       let status;
       fetch(`api/v1/instances/${row.id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => {
+          status = response.status;
+          return response.json();
+        })
+        .then(results => {
+          if (status === 200) {
+            return onCloseDelete(results.data);
+          } else {
+            const error = processError(results);
+            throw new Error(error);
+          }
+        })
+        .catch(error => {
+          console.error(error.name + ': ' + error.message);
+          alert(
+            'An error occurred. Please try again or contact an administrator.',
+          );
+        });
+    } else {
+      return;
+    }
+  };
+
+  const handleUpdate = () => {
+    if (confirm('Are you sure you want to attempt to update this instance?')) {
+      let status;
+      fetch(`api/v1/instances/${row.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
