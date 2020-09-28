@@ -99,6 +99,7 @@ export default function ViewInstance(props) {
     } else {
       return (
         <Grid container item xs={12} sm={4} justify="flex-start">
+          {/*
           <Grid item>
             <Button
               variant="contained"
@@ -111,6 +112,7 @@ export default function ViewInstance(props) {
             </Button>
             <EditInstance row={row} open={openEdit} onClose={handleCloseEdit} />
           </Grid>
+          */}
           <Grid item>
             <Button
               variant="contained"
