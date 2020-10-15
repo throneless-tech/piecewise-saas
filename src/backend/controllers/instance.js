@@ -57,7 +57,7 @@ async function validate_upgrade(query) {
 }
 
 // eslint-disable-next-line no-unused-vars
-export default function controller(domain, instances, thisUser) {
+export default function controller(domain, instances, thisUser, mapboxKey) {
   const router = new Router();
 
   router.post('/instances', thisUser.can('access admin pages'), async ctx => {
@@ -101,6 +101,7 @@ export default function controller(domain, instances, thisUser) {
       PIECEWISE_OAUTH_CALLBACK_URL=https://${
         instance[0].domain
       }/api/v1/oauth2/callback
+      PIECEWISE_MAPBOX_KEY=${mapboxKey}
       `;
 
       // options for docker build
@@ -198,6 +199,7 @@ export default function controller(domain, instances, thisUser) {
       PIECEWISE_OAUTH_CALLBACK_URL=https://${
         instance[0].domain
       }/api/v1/oauth2/callback
+      PIECEWISE_MAPBOX_KEY=${mapboxKey}
       `;
 
         // options for docker build
@@ -434,6 +436,7 @@ export default function controller(domain, instances, thisUser) {
             PIECEWISE_OAUTH_CALLBACK_URL=https://${
               instance[0].domain
             }/api/v1/oauth2/callback
+            PIECEWISE_MAPBOX_KEY=${mapboxKey}
             `;
 
           // options for docker build
