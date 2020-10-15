@@ -24,6 +24,9 @@ const defaults = {
     pool_max: process.env.PIECEWISE_SAAS_DB_POOL_MAX || 10,
     timeout: process.env.PIECEWISE_SAAS_DB_TIMEOUT || 0,
   },
+  mapbox: {
+    key: process.env.PIECEWISE_SAAS_MAPBOX_KEY,
+  },
   server: {
     domain: process.env.PIECEWISE_SAAS_DOMAIN || 'localhost',
     host: process.env.PIECEWISE_SAAS_HOST || 'localhost',
@@ -149,7 +152,7 @@ class Config extends Command {
 
   parse(args) {
     super.parse(args);
-    if (!this.cfaccess_url != !this.cfaccess_audience) {
+    if (!this.cfaccessUrl != !this.cfaccessAudience) {
       throw new Error(
         'If using Cloudflare Access both the URL and the Audience must be specified.',
       );
@@ -240,14 +243,20 @@ export default program
     defaults.db.password,
   )
   .option(
-    '--cfaccess_url <url>',
+    '--cfaccess-url <url>',
     'Cloudflare Access URL',
     validateUrl,
     defaults.cfaccess.url,
   )
   .option(
-    '--cfaccess_audience <token>',
+    '--cfaccess-audience <token>',
     'Cloudflare Access Audience',
     validateToken,
     defaults.cfaccess.audience,
+  )
+  .option(
+    '--mapbox-key <key>',
+    'Mapbox API key',
+    validateToken,
+    defaults.mapbox.key,
   );

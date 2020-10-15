@@ -59,7 +59,12 @@ export default function configServer(config) {
   const groups = GroupController(groupModel, auth);
   const settingModel = new Settings(db);
   const settings = SettingController(settingModel, auth);
-  const instances = InstanceController(config.domain, instanceModel, auth);
+  const instances = InstanceController(
+    config.domain,
+    instanceModel,
+    auth,
+    config.mapboxKey,
+  );
   instances.use('/instances/:iid', users.routes(), users.allowedMethods());
   const apiV1Router = compose([
     users.routes(),
@@ -95,7 +100,7 @@ export default function configServer(config) {
   });
 
   // If we're running behind Cloudflare, set the access parameters.
-  if (config.cfaccess_url && config.cfaccess_audience) {
+  if (config.cfaccessUrl && config.cfaccessAudience) {
     server.use(async (ctx, next) => {
       let cfa = await cloudflareAccess();
       await cfa(ctx, next);
