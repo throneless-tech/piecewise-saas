@@ -2,13 +2,16 @@ import { UnprocessableError } from '../../common/errors.js';
 import Joi from '@hapi/joi';
 
 const schema = Joi.object({
-  username: Joi.string(),
+  username: Joi.string()
+    .alphanum()
+    .min(3)
+    .max(30),
   password: Joi.string(),
   id: Joi.number(),
   firstName: Joi.string(),
   lastName: Joi.string(),
   instance: Joi.number(),
-  email: Joi.string(),
+  email: Joi.string().email(),
   phone: Joi.string(),
   extension: Joi.number(),
   role: Joi.number(),
@@ -16,14 +19,17 @@ const schema = Joi.object({
 
 // schema for users editing their own account
 const userSchema = Joi.object({
-  username: Joi.string(),
+  username: Joi.string()
+    .alphanum()
+    .min(3)
+    .max(30),
   oldPassword: Joi.string().allow(''),
   newPassword: Joi.string().allow(''),
   id: Joi.number(),
   firstName: Joi.string(),
   lastName: Joi.string(),
   instance: Joi.number(),
-  email: Joi.string(),
+  email: Joi.string().email(),
   phone: Joi.string(),
   extension: Joi.number(),
   role: Joi.number(),
