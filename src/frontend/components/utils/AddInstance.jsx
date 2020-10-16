@@ -114,70 +114,56 @@ export default function AddInstance(props) {
     const nameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
     const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]*$/;
 
-    console.log(inputs.domain);
-    console.log(domainRegex.test(inputs.domain));
-
-    if (_.isEmpty(inputs)) {
-      setErrors(errors => ({
-        ...errors,
-        name: true,
-        domain: true,
-      }));
-      setHelperText(helperText => ({
-        ...helperText,
-        name: 'This field is required.',
-        domain: 'This field is required.',
-      }));
+    if (
+      !inputs.name ||
+      !inputs.domain ||
+      !nameRegex.test(inputs.name) ||
+      !domainRegex.test(inputs.domain)
+    ) {
+      if (!inputs.name) {
+        setErrors(errors => ({
+          ...errors,
+          name: true,
+        }));
+        setHelperText(helperText => ({
+          ...helperText,
+          name: 'This field is required.',
+        }));
+      }
+      if (inputs.name && !nameRegex.test(inputs.name)) {
+        setErrors(errors => ({
+          ...errors,
+          name: true,
+        }));
+        setHelperText(helperText => ({
+          ...helperText,
+          name:
+            'Please enter a valid name. Only letters, numbers, - and _ are accepted.',
+        }));
+      }
+      if (!inputs.domain) {
+        setErrors(errors => ({
+          ...errors,
+          domain: true,
+        }));
+        setHelperText(helperText => ({
+          ...helperText,
+          domain: 'This field is required.',
+        }));
+      }
+      if (inputs.domain && !domainRegex.test(inputs.domain)) {
+        setErrors(errors => ({
+          ...errors,
+          domain: true,
+        }));
+        setHelperText(helperText => ({
+          ...helperText,
+          domain: 'Please enter a valid domain.',
+        }));
+      }
       return false;
     } else {
-      if (!inputs.name || !inputs.domain) {
-        if (!inputs.name) {
-          setErrors(errors => ({
-            ...errors,
-            name: true,
-          }));
-          setHelperText(helperText => ({
-            ...helperText,
-            name: 'Required',
-          }));
-        }
-        if (inputs.name && !nameRegex.test(inputs.name)) {
-          setErrors(errors => ({
-            ...errors,
-            name: true,
-          }));
-          setHelperText(helperText => ({
-            ...helperText,
-            name:
-              'Please enter a valid name. Only letters, numbers, - and _ are accepted.',
-          }));
-        }
-        if (!inputs.domain) {
-          setErrors(errors => ({
-            ...errors,
-            domain: true,
-          }));
-          setHelperText(helperText => ({
-            ...helperText,
-            domain: 'This field is required.',
-          }));
-        }
-        if (inputs.domain && !domainRegex.test(inputs.domain)) {
-          console.log('in else domain: ', inputs.domain);
-          console.log('in else reg: ', domainRegex.test(inputs.domain));
-          setErrors(errors => ({
-            ...errors,
-            domain: true,
-          }));
-          setHelperText(helperText => ({
-            ...helperText,
-            domain: 'Please enter a valid domain.',
-          }));
-        }
-        return false;
-      } else {
-        return true;
-      }
+      return true;
     }
   };
 
