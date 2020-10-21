@@ -45,10 +45,12 @@ PIECEWISE_SAAS_DB_PASSWORD     # Postgres password
 PIECEWISE_SAAS_DB_POOL_MIN     # Postgres minimum connections (default: 0)
 PIECEWISE_SAAS_DB_POOL_MAX     # Postgres max connections (default: 10)
 PIECEWISE_SAAS_DB_TIMEOUT      # Postgres connection timeout (default: 0)
+PIECEWISE_SAAS_MAPBOX_KEY      # The Mapbox API key to which to default Piecewise instances
 ```
 
 Additionally, we use the semi-standard `NODE_ENV` variable for defining test,
-staging, and production.
+staging, and production.In development mode Piecewise SaaS uses sqlite3, but
+uses Postgres in production.
 
 ## Deployment
 
@@ -120,6 +122,25 @@ docker-compose run piecewise-saas npm run db:seeds
 ```
 
 By default, it runs behind [Traefik](https://traefik.io) on ports 80 & 443, and Traefik will take care of issuing certificates via Letsencrypt.
+
+## OAuth2 Support
+
+Piecewise SaaS maintains Piecewise instances with OAuth2 for authentication. **This support was made and tested for use with [Piecewise](https://github.com/m-lab/piecewise), YMMV when using a different backend.**
+
+Piecewise-SaaS takes care of configuring the OAuth2 parameters for the Piecewise instances it manages.
+
+## Backups
+To backup an instance of Piecewise running in a Docker container, run the following command:
+
+```
+docker exec <name of postgres container> pg_dumpall -c -U <database user, default piecewise> dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+```
+
+To restore:
+```
+cat <backup file>.sql | docker exec -t <name of postgres container> pg_dumpall -c -U <database user, default piecewise > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+```
+
 
 ## License
 
