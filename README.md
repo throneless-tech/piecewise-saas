@@ -33,7 +33,18 @@ may be edited and copied to `.env`).
 The backend parses the following configuration variables:
 
 ```
-PIECEWISE_SAAS_PORT        # The port that the backend is listening on (default: 3000)
+PIECEWISE_SAAS_LOG_LEVEL       # Logging level (default: error)
+PIECEWISE_SAAS_DOMAIN          # The domain at which Piecewise SaaS is being hosted
+PIECEWISE_SAAS_HOST            # The host Piecewise runs on (default: localhost)
+PIECEWISE_SAAS_PORT            # The port to bind to (default: 3000)
+PIECEWISE_SAAS_DB_HOST         # Postgres database host (default: localhost)
+PIECEWISE_SAAS_DB_PORT         # Postgres port (default: 5432)
+PIECEWISE_SAAS_DB_DATABASE     # Postgres database name (default: piecewise)
+PIECEWISE_SAAS_DB_USERNAME     # Postgres user (default: piecewise)
+PIECEWISE_SAAS_DB_PASSWORD     # Postgres password
+PIECEWISE_SAAS_DB_POOL_MIN     # Postgres minimum connections (default: 0)
+PIECEWISE_SAAS_DB_POOL_MAX     # Postgres max connections (default: 10)
+PIECEWISE_SAAS_DB_TIMEOUT      # Postgres connection timeout (default: 0)
 ```
 
 Additionally, we use the semi-standard `NODE_ENV` variable for defining test,
@@ -108,9 +119,7 @@ and then optionally seed the database with a default admin user:
 docker-compose run piecewise-saas npm run db:seeds
 ```
 
-By default, it runs on [http://localhost:3000](http://localhost:3000), but you
-can place it behind a proxy such as [Nginx](https://nginx.com) in order to
-provide TLS support and other features.
+By default, it runs behind [Traefik](https://traefik.io) on ports 80 & 443, and Traefik will take care of issuing certificates via Letsencrypt.
 
 ## License
 
