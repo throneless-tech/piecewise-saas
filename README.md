@@ -112,13 +112,13 @@ If this is the first time you've run it on this system, you'll want to run the
 database migrations to initialize the database:
 
 ```
-docker-compose run piecewise-saas npm run db:migrations
+docker-compose run piecewise-saas db:migrations
 ```
 
 and then optionally seed the database with a default admin user:
 
 ```
-docker-compose run piecewise-saas npm run db:seeds
+docker-compose run piecewise-saas db:seeds
 ```
 
 By default, it runs behind [Traefik](https://traefik.io) on ports 80 & 443, and Traefik will take care of issuing certificates via Letsencrypt.
